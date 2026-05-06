@@ -57,3 +57,40 @@ async function runMigrations() {
   } finally { client.release(); await pool.end(); }
 }
 runMigrations();
+
+async function seedAdmin() {
+  const adminEmail = 'admin@mitra.com';
+  const adminPassword = 'Ah4361!@'; // Change this to your preferred password
+
+  try {
+    // 1. Ensure the users table exists
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        role VARCHAR(50) DEFAULT 'admin',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    // 2. Check if the admin already exists to avoid duplicates
+    const userCheck = await pool.query('SELECT * FROM users WHERE email = $1', [adminEmail]);
+
+    if (userCheck.rows.length === 0) {
+      // 3. Insert the admin user
+      await pool.query(
+        'INSERT INTO users (email, password, role) VALUES ($1, $2, $3)',
+        [adminEmail, adminPassword, 'admin']
+      );
+      console.log('✅ Admin user created successfully: ' + adminEmail);
+    } else {
+      console.log('ℹ️ Admin user already exists.');
+    }
+  } catch (err) {
+    console.error('❌ Error seeding admin user:', err.message);
+  }
+}
+
+// Trigger the function
+seedAdmin();
