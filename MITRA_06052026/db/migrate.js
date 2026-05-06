@@ -7,13 +7,11 @@ const { Pool } = require('pg');
 const fs   = require('fs');
 const path = require('path');
 
+const { Pool } = require('pg');
+
 const pool = new Pool({
-  host:     process.env.DB_HOST     || 'localhost',
-  port:     parseInt(process.env.DB_PORT) || 5432,
-  database: process.env.DB_NAME     || 'mitra_dashboard',
-  user:     process.env.DB_USER     || 'postgres',
-  password: process.env.DB_PASSWORD || '',
-  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
+  connectionString: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/mitradb',
+  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
 });
 
 const SQL_FILES = [
