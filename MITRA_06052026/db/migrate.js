@@ -58,7 +58,7 @@ async function seedAdmin() {
   const adminEmail = 'admin@mitra.com';
   const adminPassword = 'Ah4361!@'; // Change this to your preferred password
 
-  try {
+try {
     // 1. Ensure the users table exists
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
@@ -70,8 +70,14 @@ async function seedAdmin() {
       );
     `);
 
-    // 2. Check if the admin already exists to avoid duplicates
+    // 2. Add the missing is_active column!
+    await pool.query(`
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;
+    `);
+
+    // 3. Check if the admin already exists
     const userCheck = await pool.query('SELECT * FROM users WHERE email = $1', [adminEmail]);
+    
 
     if (userCheck.rows.length === 0) {
       // 3. Insert the admin user
