@@ -12,13 +12,17 @@ async function ultimateBoot() {
   try {
     console.log('⚡ Booting full MITRA Architecture...');
     
-    // 1. Read and execute the entire schema file to build all missing tables
+    // 1. Read and execute the entire schema file
     const schemaPath = path.join(__dirname, 'schema.sql');
     const schema = fs.readFileSync(schemaPath, 'utf8');
     await pool.query(schema);
+    
+    // 2. FORCE the database to accept the new 'master_admin' title
+    await pool.query(`ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'master_admin';`);
+    
     console.log('✅ All database tables (including Quizzes) perfectly built.');
 
-    // 2. Securely Inject the Master Admin
+    // 3. Securely Inject the Master Admin
     const hashedPassword = await bcrypt.hash('admin123', 10);
     
     await pool.query(`
