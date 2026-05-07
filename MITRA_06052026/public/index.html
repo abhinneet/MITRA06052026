@@ -4788,10 +4788,47 @@ async function submitQuizBulkUpload() {
   }
 }
 
-function downloadQuizTemplate() {
-  window.open('/api/quiz/template', '_blank');
-}
+async function downloadQuizTemplate() {
+    try {
+        // Grab the Master Admin badge
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert("Security Error: No ID badge found. Please log in again.");
+            return;
+        }
 
+        // Show the badge to the server while asking for the file
+        const response = await fetch('/api/quiz/template', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Server rejected the download request.');
+        }
+
+        // Convert the secure server response into a downloadable file
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        
+        // Create an invisible link, click it automatically, and destroy it
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = downloadUrl;
+        a.download = 'Quiz_Upload_Template.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        
+        window.URL.revokeObjectURL(downloadUrl);
+        document.body.removeChild(a);
+        
+    } catch (error) {
+        console.error("Download Error:", error);
+        alert("There was an issue securely downloading the template. Check the console.");
+    }
+}
 // ── Build individual quiz modal ───────────────────────────────────────────────
 let mqsQuestions = [];
 
