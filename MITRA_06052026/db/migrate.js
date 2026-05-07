@@ -8,12 +8,9 @@ const pool = new Pool({
 
 async function ultimateFix() {
   try {
-    console.log('⚡ Forging Final Admin Record...');
+    console.log('⚡ Forging Final Admin Record and Logbooks...');
     
-    // 1. Drop the hacky bypass table we made earlier
-    await pool.query(`DROP TABLE IF EXISTS users CASCADE;`);
-    
-    // 2. Add the special ID generator and Role definitions their code needs
+    // 1. Add dependencies
     await pool.query(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`);
     await pool.query(`
       DO $$ BEGIN
@@ -23,9 +20,9 @@ async function ultimateFix() {
       END $$;
     `);
 
-    // 3. Build the table EXACTLY like their blueprint
+    // 2. Build the users table EXACTLY like their blueprint
     await pool.query(`
-      CREATE TABLE users (
+      CREATE TABLE IF NOT EXISTS users (
         id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         full_name       VARCHAR(150) NOT NULL,
         email           VARCHAR(255) UNIQUE NOT NULL,
@@ -61,7 +58,18 @@ async function ultimateFix() {
       );
     `);
 
-    // 4. Create the flawless admin account with full permissions
+    // 3. Build the refresh_tokens table EXACTLY like the blueprint you found
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS refresh_tokens (
+        id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        user_id     UUID REFERENCES users(id) ON DELETE CASCADE,
+        token_hash  VARCHAR(255) UNIQUE NOT NULL,
+        expires_at  TIMESTAMPTZ NOT NULL,
+        created_at  TIMESTAMPTZ DEFAULT NOW()
+      );
+    `);
+
+    // 4. Securely Inject the Admin (Using ON CONFLICT so it never duplicates)
     const hashedPassword = await bcrypt.hash('admin123', 10);
     
     await pool.query(`
@@ -73,9 +81,13 @@ async function ultimateFix() {
         'MITRA System Admin', 'admin@mitra.com', $1, 'admin', true,
         true, true, true, true, true
       )
+      ON CONFLICT (email) DO UPDATE SET 
+        password_hash = EXCLUDED.password_hash,
+        role = EXCLUDED.role,
+        is_active = true;
     `, [hashedPassword]);
     
-    console.log('✅ Blueprint matched perfectly. Admin forged.');
+    console.log('✅ Blueprint matched perfectly. Logbooks built. Admin forged.');
     process.exit(0);
   } catch (err) {
     console.error('❌ Error:', err.message);
