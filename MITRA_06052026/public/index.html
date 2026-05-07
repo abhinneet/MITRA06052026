@@ -1,6 +1,34 @@
 <!DOCTYPE html>
 <html>
 <head>
+
+<script>
+  // --- MITRA 10-MINUTE IDLE WATCHDOG ---
+  let idleTime = 0;
+  const idleLimit = 10; 
+
+  function resetTimer() { idleTime = 0; }
+
+  window.addEventListener('mousemove', resetTimer);
+  window.addEventListener('keypress', resetTimer);
+  window.addEventListener('click', resetTimer);
+  window.addEventListener('scroll', resetTimer);
+
+  setInterval(function() {
+      idleTime++;
+      if (idleTime >= idleLimit) {
+          console.log("⚠️ 10 minutes of inactivity. Forcing logout.");
+          localStorage.clear(); 
+          
+          const expireBanner = document.getElementById('session-expired-banner');
+          if (expireBanner) expireBanner.style.display = 'block';
+          
+          const loginOverlay = document.getElementById('mitra-login-overlay');
+          if (loginOverlay) loginOverlay.classList.remove('hidden');
+      }
+  }, 60000); 
+</script>
+  
 <meta charset="UTF-8">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
@@ -9276,33 +9304,3 @@ function updateUmDistricts() {
         districtDropdown.add(new Option(dist, dist));
     });
 }
-// --- MITRA 10-MINUTE IDLE WATCHDOG ---
-let idleTime = 0;
-const idleLimit = 10; // Kicks out after exactly 10 minutes
-
-// 1. Reset the clock if the user does anything
-function resetTimer() { idleTime = 0; }
-
-window.addEventListener('mousemove', resetTimer);
-window.addEventListener('keypress', resetTimer);
-window.addEventListener('click', resetTimer);
-window.addEventListener('scroll', resetTimer);
-
-// 2. Add 1 minute to the clock every 60 seconds
-setInterval(function() {
-    idleTime++;
-    
-    // 3. If they hit 10 minutes, lock the screen!
-    if (idleTime >= idleLimit) {
-        console.log("⚠️ 10 minutes of inactivity. Forcing logout.");
-        sessionStorage.clear(); // Destroy the temporary ID badge
-        
-        // Show your custom "Session Expired" red banner
-        const expireBanner = document.getElementById('session-expired-banner');
-        if (expireBanner) expireBanner.style.display = 'block';
-        
-        // Throw the Login Lock Screen back down over the dashboard
-        const loginOverlay = document.getElementById('mitra-login-overlay');
-        if (loginOverlay) loginOverlay.classList.remove('hidden');
-    }
-}, 60000);
