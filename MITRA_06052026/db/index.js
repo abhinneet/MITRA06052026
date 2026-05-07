@@ -1,7 +1,6 @@
 /**
  * Database connection pool — PostgreSQL via node-postgres
  */
-const { Pool } = require('pg');
 
 // BUG-FIX #7: Accept DATABASE_URL (e.g. Heroku/Railway/Render) with fallback to individual env vars
 const poolConfig = process.env.DATABASE_URL
