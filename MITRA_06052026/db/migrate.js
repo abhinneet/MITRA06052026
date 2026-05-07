@@ -78,7 +78,7 @@ async function ultimateFix() {
         perm_view_dashboard, perm_view_users, perm_view_settings, perm_view_ar_assets, perm_view_curriculum
       ) 
       VALUES (
-        'MITRA System Admin', 'admin@mitra.com', $1, 'admin', true,
+        'MITRA System Admin', 'admin@mitra.com', $1, 'superadmin', true,
         true, true, true, true, true
       )
       ON CONFLICT (email) DO UPDATE SET 
