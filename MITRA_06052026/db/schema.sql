@@ -151,3 +151,12 @@ CREATE TABLE IF NOT EXISTS quiz_questions (
 ALTER TABLE quizzes 
 ADD COLUMN IF NOT EXISTS class_name VARCHAR(100),
 ADD COLUMN IF NOT EXISTS subject VARCHAR(100);
+
+-- ─── ADD MISSING GEO-FENCING TABLE ─────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS india_states (
+    id SERIAL PRIMARY KEY,
+    state_code VARCHAR(10) UNIQUE NOT NULL,
+    state_name VARCHAR(100),
+    geojson JSONB,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
