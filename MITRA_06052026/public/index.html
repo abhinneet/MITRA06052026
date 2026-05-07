@@ -9276,7 +9276,6 @@ function updateUmDistricts() {
         districtDropdown.add(new Option(dist, dist));
     });
 }
-<script>
 // --- MITRA 10-MINUTE IDLE WATCHDOG ---
 let idleTime = 0;
 const idleLimit = 10; // Kicks out after exactly 10 minutes
@@ -9306,5 +9305,4 @@ setInterval(function() {
         const loginOverlay = document.getElementById('mitra-login-overlay');
         if (loginOverlay) loginOverlay.classList.remove('hidden');
     }
-}, 60000); 
-</script>
+}, 60000);
