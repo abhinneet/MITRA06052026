@@ -4738,7 +4738,7 @@ async function submitQuizBulkUpload() {
   const formData = new FormData();
   formData.append('file', quizUploadFile);
   try {
-    const token = sessionStorage.getItem('mitra_token') || '';
+    const token = localStorage.getItem('mitra_token') || '';
     const res = await fetch('/api/quiz/bulk-upload', {
       method:'POST',
       headers: token ? { 'Authorization': 'Bearer ' + token } : {},
@@ -5842,7 +5842,7 @@ async function submitArUpload() {
   }, 400);
 
   try {
-    const token = sessionStorage.getItem('mitra_token') || '';
+    const token = localStorage.getItem('mitra_token') || '';
     const res = await fetch('/api/unity/upload', {
       method: 'POST',
       headers: token ? { 'Authorization': 'Bearer ' + token } : {},
@@ -7650,7 +7650,7 @@ function applyDashTheme(theme) {
   const starsEl = document.querySelector('.stars-bg');
   if (starsEl) starsEl.setAttribute('data-theme', legacyMap[theme] || 'milky-way');
 
-  sessionStorage.setItem('mitra_theme', theme);
+  localStorage.setItem('mitra_theme', theme);
 
   // Update theme card active states in #page-settings
   ['milkyway','aurora','deepvoid'].forEach(t => {
@@ -7666,7 +7666,7 @@ function applyDashTheme(theme) {
 
 // Apply on page load — FIX: body class applied immediately, element queries deferred to DOMContentLoaded
 (function() {
-  const saved = sessionStorage.getItem('mitra_theme') || 'milkyway';
+  const saved = localStorage.getItem('mitra_theme') || 'milkyway';
   const normalise = { 'milky-way': 'milkyway', 'deep-void': 'deepvoid' };
   const theme = normalise[saved] || saved;
   // Safe to apply to body/documentElement immediately — no element queries
@@ -7678,7 +7678,7 @@ function applyDashTheme(theme) {
 })();
 // Defer element queries until DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
-  const saved = sessionStorage.getItem('mitra_theme') || 'milkyway';
+  const saved = localStorage.getItem('mitra_theme') || 'milkyway';
   const normalise = { 'milky-way': 'milkyway', 'deep-void': 'deepvoid' };
   const theme = normalise[saved] || saved;
   const legacyMap = { milkyway: 'milky-way', aurora: 'aurora', deepvoid: 'deep-void' };
@@ -7692,7 +7692,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // AUTH HEADERS HELPER (Step 11)
 // ════════════════════════════════════════════════════════════════
 function authHeaders() {
-  const token = sessionStorage.getItem('mitra_token') || sessionStorage.getItem('mitra_token') || '';
+  const token = localStorage.getItem('mitra_token') || localStorage.getItem('mitra_token') || '';
   return token ? { 'Authorization': 'Bearer ' + token } : {};
 }
 
@@ -7737,8 +7737,8 @@ function showSessionExpired() {
   const banner = document.getElementById('session-expired-banner');
   if (banner) { banner.style.display = 'block'; }
   setTimeout(() => {
-    sessionStorage.removeItem('mitra_token');
-    sessionStorage.removeItem('mitra_token');
+    localStorage.removeItem('mitra_token');
+    localStorage.removeItem('mitra_token');
     showLoginScreen();
   }, 2000);
 }
@@ -7778,8 +7778,8 @@ async function doLogin() {
       return;
     }
     // Store token
-    sessionStorage.setItem('mitra_token', data.token || data.access_token || '');
-    if (data.refresh_token) sessionStorage.setItem('mitra_refresh_token', data.refresh_token);
+    localStorage.setItem('mitra_token', data.token || data.access_token || '');
+    if (data.refresh_token) localStorage.setItem('mitra_refresh_token', data.refresh_token);
     // Hide login overlay
     document.getElementById('mitra-login-overlay').classList.add('hidden');
     // Initialise the dashboard
@@ -7794,7 +7794,7 @@ async function doLogin() {
 
 // ── On page load: check auth token ──────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function mitraAuthInit() {
-  const token = sessionStorage.getItem('mitra_token') || sessionStorage.getItem('mitra_token');
+  const token = localStorage.getItem('mitra_token') || localStorage.getItem('mitra_token');
   if (!token) {
     showLoginScreen();
   } else {
@@ -8260,7 +8260,7 @@ window.showPage = function showPage(pageId, topBtn, sbBtn) {
     if (firstTab && !document.querySelector('.am-tab.on')) firstTab.click();
   }
   if (pageId === 'settings') {
-    const saved = sessionStorage.getItem('mitra_theme') || 'milkyway';
+    const saved = localStorage.getItem('mitra_theme') || 'milkyway';
     const norm  = { 'milky-way': 'milkyway', 'deep-void': 'deepvoid' };
     typeof applyDashTheme === 'function' && applyDashTheme(norm[saved] || saved);
   }
@@ -8794,12 +8794,12 @@ const COMPLIANCE_ITEMS = [
   { id:'c15',severity:'low',      label:'Notification Deep-Link Validation', desc:'Deep-link topic IDs validated against curriculum table before FCM dispatch.', status:'ok', action:null },
 ];
 
-// FIX: persist last-refresh date in sessionStorage
-let complianceLastRefresh = sessionStorage.getItem('mitra_compliance_refresh') ? new Date(sessionStorage.getItem('mitra_compliance_refresh')) : null;
+// FIX: persist last-refresh date in localStorage
+let complianceLastRefresh = localStorage.getItem('mitra_compliance_refresh') ? new Date(localStorage.getItem('mitra_compliance_refresh')) : null;
 let _complianceLastRefreshUnused = null;
 
 function refreshComplianceChecklist() {
-  complianceLastRefresh = new Date(); sessionStorage.setItem('mitra_compliance_refresh', complianceLastRefresh.toISOString());
+  complianceLastRefresh = new Date(); localStorage.setItem('mitra_compliance_refresh', complianceLastRefresh.toISOString());
   renderComplianceChecklist();
   showToast('🔄 Compliance status refreshed');
 }
