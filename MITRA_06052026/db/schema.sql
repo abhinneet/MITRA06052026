@@ -130,3 +130,18 @@ CREATE TABLE IF NOT EXISTS geofences (
   created_at      TIMESTAMPTZ DEFAULT NOW(),
   updated_at      TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- ─── QUIZ QUESTIONS ───────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS quiz_questions (
+  id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  quiz_id         UUID REFERENCES quizzes(id) ON DELETE CASCADE,
+  question_text   TEXT NOT NULL,
+  question_type   VARCHAR(50) DEFAULT 'multiple_choice',
+  options         JSONB, 
+  correct_answer  TEXT,
+  points          INT DEFAULT 1,
+  sort_order      INT DEFAULT 0,
+  is_active       BOOLEAN DEFAULT TRUE,
+  created_at      TIMESTAMPTZ DEFAULT NOW(),
+  updated_at      TIMESTAMPTZ DEFAULT NOW()
+);
