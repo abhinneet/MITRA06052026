@@ -173,7 +173,7 @@ async function boot() {
     client.release();
     await pool.end();
   } catch (migrErr) {
-    console.warn('[boot] Migration warning (non-fatal):', migrErr.message);
+    //console.warn('[boot] Migration warning (non-fatal):', migrErr.message);
   }
 
   app.listen(PORT, () => {
