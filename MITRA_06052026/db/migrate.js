@@ -16,10 +16,7 @@ async function ultimateBoot() {
     const schemaPath = path.join(__dirname, 'schema.sql');
     const schema = fs.readFileSync(schemaPath, 'utf8');
     await pool.query(schema);
-    
-    // 2. FORCE the database to accept the new 'master_admin' title
-    await pool.query(`ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'master_admin';`);
-    
+     
     console.log('✅ All database tables (including Quizzes) perfectly built.');
 
     // 3. Securely Inject the Master Admin
