@@ -1,41 +1,37 @@
 const { Pool } = require('pg');
-let bcrypt;
-
-// This safely finds your app's encryption tool
-try { 
-    bcrypt = require('bcrypt'); 
-} catch(e) { 
-    try { bcrypt = require('bcryptjs'); } catch(e) {} 
-}
+const bcrypt = require('bcryptjs');
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
 });
 
-async function fixAdmin() {
+async function godMode() {
   try {
-    console.log('🔧 Applying Surgical Database Fix...');
+    console.log('⚡ Initiating God Mode Setup...');
+    const hashedPassword = await bcrypt.hash('admin123', 10);
     
-    // 1. Add the missing is_active column so the login doesn't crash
-    await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;`);
-    console.log('✅ is_active column verified.');
-
-    // 2. Scramble the password the exact way your dashboard expects
-    if (bcrypt) {
-        const hashedPassword = await bcrypt.hash('admin123', 10);
-        await pool.query(`UPDATE users SET password = $1 WHERE email = 'admin@mitra.com';`, [hashedPassword]);
-        console.log('✅ Password successfully scrambled.');
-    } else {
-        console.log('⚠️ Could not find encryption tool. Password left as plain text.');
+    // 1. Try to update the existing account to fix it
+    const updateRes = await pool.query(
+        `UPDATE users SET password = $1, is_active = true, role = 'admin' WHERE email = 'admin@mitra.com'`, 
+        [hashedPassword]
+    );
+    
+    // 2. If it doesn't exist, create it from scratch
+    if (updateRes.rowCount === 0) {
+        console.log('⚠️ Admin not found. Forging brand new record...');
+        await pool.query(`
+          INSERT INTO users (email, password, role, is_active) 
+          VALUES ('admin@mitra.com', $1, 'admin', true)
+        `, [hashedPassword]);
     }
-
-    console.log('🎉 Fix complete! Booting the dashboard...');
+    
+    console.log('✅ Admin account completely secured. You are cleared for login.');
     process.exit(0);
   } catch (err) {
-    console.error('❌ Fix error:', err.message);
+    console.error('❌ Error in God Mode:', err.message);
     process.exit(1);
   }
 }
 
-fixAdmin();
+godMode();
