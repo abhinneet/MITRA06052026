@@ -146,3 +146,9 @@ CREATE TABLE IF NOT EXISTS quiz_questions (
   created_at      TIMESTAMPTZ DEFAULT NOW(),
   updated_at      TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- ─── ADD MISSING COLUMNS TO QUIZZES ──────────────────────────────────────────
+ALTER TABLE quizzes 
+ADD COLUMN IF NOT EXISTS class_name VARCHAR(100),
+ADD COLUMN IF NOT EXISTS subject VARCHAR(100);
+);
