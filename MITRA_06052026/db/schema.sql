@@ -1,3 +1,4 @@
+SET client_min_messages = warning;
 -- MITRA Dashboard · Full Database Schema
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
