@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- Refresh token store
-CREATE TABLE refresh_tokens (
+CREATE TABLE IF NOT EXISTS refresh_tokens (
   id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id     UUID REFERENCES users(id) ON DELETE CASCADE,
   token_hash  VARCHAR(255) UNIQUE NOT NULL,
@@ -69,7 +69,7 @@ CREATE TABLE refresh_tokens (
 );
 
 -- ─── CURRICULUM ───────────────────────────────────────────────────────────────
-CREATE TABLE curriculum_nodes (
+CREATE TABLE IF NOT EXISTS curriculum_nodes (
   id          UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   parent_id   UUID REFERENCES curriculum_nodes(id) ON DELETE CASCADE,
   node_type   VARCHAR(20) NOT NULL CHECK (node_type IN ('class','subject','topic','language')),
@@ -82,7 +82,7 @@ CREATE TABLE curriculum_nodes (
 );
 
 -- ─── UNITY ASSETS ─────────────────────────────────────────────────────────────
-CREATE TABLE unity_assets (
+CREATE TABLE IF NOT EXISTS unity_assets (
   id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name            VARCHAR(255) NOT NULL,
   original_name   VARCHAR(255),
@@ -110,7 +110,7 @@ CREATE TABLE unity_assets (
 );
 
 -- ─── STATE APPS ───────────────────────────────────────────────────────────────
-CREATE TABLE state_apps (
+CREATE TABLE IF NOT EXISTS state_apps (
   id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   app_name        VARCHAR(150) NOT NULL,
   target_state    VARCHAR(100) NOT NULL,
@@ -126,7 +126,7 @@ CREATE TABLE state_apps (
 );
 
 -- ─── GEOFENCES ────────────────────────────────────────────────────────────────
-CREATE TABLE geofences (
+CREATE TABLE IF NOT EXISTS geofences (
   id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name            VARCHAR(200) NOT NULL,
   state           VARCHAR(100) NOT NULL,
@@ -141,7 +141,7 @@ CREATE TABLE geofences (
 );
 
 -- ─── ADVERTISEMENTS ───────────────────────────────────────────────────────────
-CREATE TABLE ad_campaigns (
+CREATE TABLE IF NOT EXISTS ad_campaigns (
   id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name            VARCHAR(255) NOT NULL,
   advertiser      VARCHAR(255),
@@ -178,7 +178,7 @@ CREATE TABLE ad_campaigns (
 );
 
 -- ─── AD IMPRESSION EVENTS (raw telemetry) ─────────────────────────────────────
-CREATE TABLE ad_impressions (
+CREATE TABLE IF NOT EXISTS ad_impressions (
   id              BIGSERIAL PRIMARY KEY,
   campaign_id     UUID REFERENCES ad_campaigns(id) ON DELETE CASCADE,
   device_id       VARCHAR(128),
@@ -204,7 +204,7 @@ CREATE TABLE ad_impressions (
 );
 
 -- ─── STUDENT APP TELEMETRY ────────────────────────────────────────────────────
-CREATE TABLE app_telemetry (
+CREATE TABLE IF NOT EXISTS app_telemetry (
   id              BIGSERIAL PRIMARY KEY,
   device_id       VARCHAR(128),
   student_id      VARCHAR(128),
