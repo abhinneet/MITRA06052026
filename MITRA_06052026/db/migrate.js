@@ -77,11 +77,11 @@ async function ultimateFix() {
         full_name, email, password_hash, role, is_active,
         perm_view_dashboard, perm_view_users, perm_view_settings, perm_view_ar_assets, perm_view_curriculum
       ) 
-      VALUES (
-        'MITRA System Admin', 'admin@mitra.com', $1, 'superadmin', true,
-        true, true, true, true, true
-      )
-      ON CONFLICT (email) DO UPDATE SET 
+VALUES (
+     'MITRA System Admin', 'admin@mitra.com', $1, 'superadmin', true,
+     true, true, true, true, true
+   )
+   ON CONFLICT (email) DO UPDATE SET 
         password_hash = EXCLUDED.password_hash,
         role = EXCLUDED.role,
         is_active = true;
