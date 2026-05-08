@@ -103,7 +103,7 @@ app.use('/api/notifications/schedule',  notifSendLimiter);
 app.use('/api/notifications', notificationsRoutes);   // push notification engine
 app.use('/api/compliance/purge-user',   complianceLimiter);
 app.use('/api/compliance/run-auto-purge', complianceLimiter);
-app.use('/api/compliance',    complianceRoutes);       // DPDP/CERT-In compliance
+//app.use('/api/compliance',    complianceRoutes);       // DPDP/CERT-In compliance
 app.use('/api/users',        usersRoutes);            // BUG-FIX #1: was missing
 app.use('/api/ads',          advertisementsRoutes);   // BUG-FIX #1: was missing
 app.use('/api/tenant',       tenantRoutes);           // NEW: Tenant Database Links
