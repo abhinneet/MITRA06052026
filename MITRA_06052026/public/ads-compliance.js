@@ -637,7 +637,7 @@ async function updateComplianceSetting(featureName, isEnabled) {
     }
 }
 
-// Function 2: Handle the DPO Save Button
+// Function 2: Handle the DPO Save & UI Collapse
 async function saveDPO() {
     const name = document.getElementById('dpo-name').value;
     const email = document.getElementById('dpo-email').value;
@@ -656,11 +656,28 @@ async function saveDPO() {
         });
 
         if (res.ok) {
-            alert("DPO Appointed Successfully! Tracker will now update.");
-            // This forces your tracker to refresh and show the ✅
-            setTimeout(checkComplianceStatus, 500); 
+            // 1. Force the tracker to update the checkboxes below
+            if(typeof checkComplianceStatus === 'function') setTimeout(checkComplianceStatus, 500); 
+
+            // 2. Hide the giant Command Center
+            document.getElementById('dpo-command-center').style.display = 'none';
+
+            // 3. Populate the mini-summary bar with your live inputs
+            document.getElementById('summary-dpo-name').textContent = name;
+            document.getElementById('summary-erasure').textContent = document.getElementById('toggle-erasure').checked ? 'ON' : 'OFF';
+            document.getElementById('summary-withdrawal').textContent = document.getElementById('toggle-withdrawal').checked ? 'ON' : 'OFF';
+
+            // 4. Reveal the mini-summary bar
+            document.getElementById('dpo-summary-section').style.display = 'block';
         }
     } catch (e) {
         console.error("Error saving DPO", e);
     }
+}
+
+// Function 3: Expand the panel back out for editing
+function toggleDPOEdit() {
+    // Hide the summary, bring back the command center
+    document.getElementById('dpo-summary-section').style.display = 'none';
+    document.getElementById('dpo-command-center').style.display = 'block';
 }
