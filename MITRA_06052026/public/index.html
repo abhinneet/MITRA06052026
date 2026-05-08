@@ -4563,29 +4563,19 @@ function exportData(format) {
   XLSX.writeFile(wb, `MITRA_Analytics_Export_${new Date().toISOString().slice(0,10)}.${format}`);
 }
 
-function initAllCharts() {
-  Chart.defaults.color = '#94a3b8';
-  Chart.defaults.font.family = "'DM Sans', sans-serif";
-  Chart.defaults.plugins.legend.labels.boxWidth = 12;
-
-  window.createChart = (id, type, labels, datasets, options = {}) => {
-    // Safety check: Find the canvas first
+// ⚡ GLOBAL CHART MAKER (Accessible everywhere instantly)
+function createChart(id, type, labels, datasets, options = {}) {
     const canvasElement = document.getElementById(id);
-    
-    // If the canvas doesn't exist on this page, politely skip it instead of crashing
     if (!canvasElement) {
-      console.warn(`Skipped chart: Could not find HTML canvas with id '${id}'`);
-      return; 
+      return null; 
     }
 
-    // ⚡ THE FIX: Check if a chart already exists on this canvas and destroy it
     let existingChart = Chart.getChart(id);
     if (existingChart !== undefined) {
       existingChart.destroy();
     }
 
-    // Now safely create the new chart
-    new Chart(canvasElement, {
+    return new Chart(canvasElement, {
       type: type,
       data: { labels: labels, datasets: datasets },
       options: {
@@ -4599,7 +4589,13 @@ function initAllCharts() {
         ...options
       }
     });
-  };
+}
+
+function initAllCharts() {
+  Chart.defaults.color = '#94a3b8';
+  Chart.defaults.font.family = "'DM Sans', sans-serif";
+  Chart.defaults.plugins.legend.labels.boxWidth = 12;
+  // (Your individual charts like chart-completion will stay right here below this)
 
   createChart('chart-completion', 'bar', ['Sci', 'Math', 'Hist', 'Geo'], [
     { label: 'Completed', data: [85, 70, 65, 80], backgroundColor: '#10b981' },
