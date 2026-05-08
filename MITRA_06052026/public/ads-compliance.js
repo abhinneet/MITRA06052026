@@ -191,18 +191,34 @@ function toggleBeforeTopic(cb) {
     showToast('Daily counter mode restored');
   }
 }
+
 function saveFrequencyConfig() {
   const val = (document.getElementById('daily-push-counter') || {}).value || '5';
+  
+  // 1. Grab your security token
+  const token = localStorage.getItem('mitra_token');
+
+  // 2. Attach it to the fetch request
   fetch('/api/ads/frequency', {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ daily_push: parseInt(val), before_topic: document.getElementById('before-topic-toggle')?.checked }),
+    headers: { 
+        'Authorization': `Bearer ${token}`,  // <--- THE FIX
+        'Content-Type': 'application/json' 
+    },
+    body: JSON.stringify({ 
+        daily_push: parseInt(val), 
+        before_topic: document.getElementById('before-topic-toggle')?.checked 
+    }),
   })
-  .then(() => showToast('Frequency set to ' + val + ' push(es)/day — saved'))
-  .catch(() => showToast('Frequency set to ' + val + ' push(es)/day — saved'));
+  .then((res) => {
+      if (!res.ok) throw new Error("Server rejected the save");
+      showToast('Frequency set to ' + val + ' push(es)/day — saved');
+  })
+  .catch((err) => {
+      console.error("Error saving frequency:", err);
+      showToast('Error: Could not save frequency settings');
+  });
 }
-function loadCampaignFreq() { showToast('Frequency config loaded for selected campaign'); }
-
 /** Toggle all checkboxes */
 function toggleAllCheck(cls, cb) {
   document.querySelectorAll('.' + cls).forEach(c => c.checked = cb.checked);
