@@ -214,13 +214,36 @@ function toggleAllCheck(cls, cb) {
 let _adChartsInit = false;
 
 function initAdCharts() {
-  if (_adChartsInit || typeof Chart === 'undefined') return;
-  _adChartsInit = true;
+  // We can remove the old _adChartsInit lock because our destroy logic
+  // makes it 100% safe to redraw these charts whenever you click the Ads tab!
+  if (typeof Chart === 'undefined') return;
 
   const cc = (id, type, labels, datasets, extra) => {
     const el = document.getElementById(id);
     if (!el) return;
-    new Chart(el, { type, data: { labels, datasets }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 } } } }, scales: type === 'doughnut' || type === 'polarArea' ? {} : { x: { ticks: { color: '#94a3b8' } }, y: { ticks: { color: '#94a3b8' } }, ...((extra||{}).scales||{}) }, ...(extra||{}) } });
+
+    // ⚡ THE FIX: Destroy the old chart before reusing the canvas
+    let existingChart = Chart.getChart(id);
+    if (existingChart !== undefined) {
+      existingChart.destroy();
+    }
+
+    // Safely draw the new chart
+    new Chart(el, { 
+      type, 
+      data: { labels, datasets }, 
+      options: { 
+        responsive: true, 
+        maintainAspectRatio: false, 
+        plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 } } } }, 
+        scales: type === 'doughnut' || type === 'polarArea' ? {} : { 
+          x: { ticks: { color: '#94a3b8' } }, 
+          y: { ticks: { color: '#94a3b8' } }, 
+          ...((extra||{}).scales||{}) 
+        }, 
+        ...(extra||{}) 
+      } 
+    });
   };
 
   cc('chart-ad-hourly', 'bar',
@@ -294,14 +317,29 @@ document.addEventListener('DOMContentLoaded', () => {
 /** Load live ad stats from API */
 async function loadAdStats() {
   try {
-    const res = await fetch('/api/ads/kpi');
+    // 1. Grab your active token
+    const token = localStorage.getItem('mitra_token');
+
+    // 2. Attach the token to the fetch request
+    const res = await fetch('/api/ads/kpi', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
     if (!res.ok) return;
     const d = await res.json();
+    
     if (d.active_campaigns !== undefined) document.getElementById('ad-stat-campaigns').textContent = d.active_campaigns;
     if (d.total_impressions !== undefined) document.getElementById('ad-stat-impressions').textContent = _fmtNum(d.total_impressions);
     if (d.avg_daily_push !== undefined) document.getElementById('ad-stat-daily').textContent = d.avg_daily_push;
     if (d.states_targeted !== undefined) document.getElementById('ad-stat-states').textContent = d.states_targeted;
-  } catch (e) { /* use default values */ }
+  } catch (e) { 
+    /* use default values */ 
+    console.warn("Could not load real-time Ad Stats.");
+  }
 }
 
 function _fmtNum(n) {
