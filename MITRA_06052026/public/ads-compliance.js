@@ -608,3 +608,59 @@ function printCertificate() {
 function _escHTML(str) {
   return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+
+
+// ──────────────────────────────────────────────────────────────────
+// COMPLIANCE ACTION BUTTONS
+// ──────────────────────────────────────────────────────────────────
+// Function 1: Handle the Toggles (Erasure & Withdrawal)
+async function updateComplianceSetting(featureName, isEnabled) {
+    try {
+        const token = localStorage.getItem('mitra_token');
+        const res = await fetch('/api/compliance/settings', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ feature: featureName, active: isEnabled })
+        });
+
+        if (res.ok) {
+            // Optional: You can trigger a small toast notification here
+            console.log(`${featureName} is now ${isEnabled ? 'ENABLED' : 'DISABLED'}`);
+            // This forces your tracker to refresh and show the ✅
+            setTimeout(checkComplianceStatus, 500); 
+        }
+    } catch (e) {
+        alert("Failed to update setting. Check connection.");
+    }
+}
+
+// Function 2: Handle the DPO Save Button
+async function saveDPO() {
+    const name = document.getElementById('dpo-name').value;
+    const email = document.getElementById('dpo-email').value;
+
+    if(!name || !email) return alert("Please enter both Name and Email.");
+
+    try {
+        const token = localStorage.getItem('mitra_token');
+        const res = await fetch('/api/compliance/dpo', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name, email })
+        });
+
+        if (res.ok) {
+            alert("DPO Appointed Successfully! Tracker will now update.");
+            // This forces your tracker to refresh and show the ✅
+            setTimeout(checkComplianceStatus, 500); 
+        }
+    } catch (e) {
+        console.error("Error saving DPO", e);
+    }
+}
