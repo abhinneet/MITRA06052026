@@ -9958,6 +9958,16 @@ function updateUmDistricts() {
         districtDropdown.add(new Option(dist, dist));
     });
 }
+//---------Live Preview Notification Edit Window---------------
+  function updatePreview() {
+    const title = document.getElementById('nt-title').value || "New Notification";
+    const body = document.getElementById('nt-body').value || "Your message will appear here exactly like this on student phones.";
+    const color = document.getElementById('nt-color').value;
+
+    document.getElementById('prev-title').innerText = title;
+    document.getElementById('prev-body').innerText = body;
+    document.getElementById('preview-icon').style.backgroundColor = color;
+}
+  
 </script>
-</body>
-</html>
+
