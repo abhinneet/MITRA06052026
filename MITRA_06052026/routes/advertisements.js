@@ -139,7 +139,13 @@ router.post('/', requirePerm('perm_manage_ads'), async (req, res) => {
 });
 
 // GET /api/ads/:id
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req, res, next) => {
+  // ⚡ THE SAFETY NET: If the request is for "kpi" or "analytics", pass it down the road!
+  const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+  if (!uuidRegex.test(req.params.id)) {
+    return next(); 
+  }
+
   try {
     const result = await query(`
       SELECT c.*, u.full_name AS created_by_name
