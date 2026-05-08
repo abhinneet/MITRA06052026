@@ -7,7 +7,7 @@
 //     const adsComplianceRoutes = require('./api/ads-compliance-routes');
 //     app.use('/api', adsComplianceRoutes);
 // ═══════════════════════════════════════════════════════════════════
-const { authenticate } = require('../middleware/auth');
+const { authenticate, masterAdminOnly } = require('../middleware/auth');
 
 const express  = require('express');
 const router   = express.Router();
