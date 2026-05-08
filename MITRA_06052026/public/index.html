@@ -9077,7 +9077,31 @@ async function loadNotifAnalyticsSubTab() {
 
   
 <script src="/ads-compliance.js"></script>
+  
+<script>
+function updatePreview() {
+    const titleInput = document.getElementById('nt-title');
+    const bodyInput = document.getElementById('nt-body');
+    const colorInput = document.getElementById('nt-color');
 
+    const pTitle = document.getElementById('prev-title');
+    const pBody = document.getElementById('prev-body');
+    const pIcon = document.getElementById('preview-icon');
+
+    if(pTitle && titleInput) pTitle.innerText = titleInput.value || "New Notification";
+    if(pBody && bodyInput) pBody.innerText = bodyInput.value || "Your message will appear here...";
+    if(pIcon && colorInput) pIcon.style.backgroundColor = colorInput.value;
+}
+
+// This makes sure it runs even if other scripts try to take over
+document.addEventListener('input', function (e) {
+    if (e.target.id === 'nt-title' || e.target.id === 'nt-body' || e.target.id === 'nt-color') {
+        updatePreview();
+    }
+});
+</script>
+
+  
 <script>
 // ════════════════════════════════════════════════════════════════════════════
 // USER MANAGEMENT — Full JS Module
