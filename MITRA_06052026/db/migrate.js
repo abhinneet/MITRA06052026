@@ -18,7 +18,7 @@ async function ultimateBoot() {
     await pool.query(schema);
 
     // ---------------------------------------------------------
-    // ⚡ MISSING TABLES INJECTED HERE ⚡
+    // ⚡ MISSING TABLES & COLUMNS INJECTED HERE ⚡
     // ---------------------------------------------------------
     
     // 1. Create Curriculum Topics Table
@@ -46,11 +46,13 @@ async function ultimateBoot() {
 
     // 3. FORCE-PATCH missing columns into push_notifications
     await pool.query(`
-        ALTER TABLE push_notifications 
-        ADD COLUMN IF NOT EXISTS topic VARCHAR(255),
-        ADD COLUMN IF NOT EXISTS subject VARCHAR(255),
-        ADD COLUMN IF NOT EXISTS class_name VARCHAR(100),
-        ADD COLUMN IF NOT EXISTS sent_by VARCHAR(255);
+        ALTER TABLE push_notifications ADD COLUMN IF NOT EXISTS topic VARCHAR(255);
+        ALTER TABLE push_notifications ADD COLUMN IF NOT EXISTS subject VARCHAR(255);
+        ALTER TABLE push_notifications ADD COLUMN IF NOT EXISTS class_name VARCHAR(255);
+        
+        -- Fix the UUID mismatch
+        ALTER TABLE push_notifications DROP COLUMN IF EXISTS sent_by;
+        ALTER TABLE push_notifications ADD COLUMN sent_by UUID;
     `);
 
     // 4. Create Notification Analytics Table
@@ -62,6 +64,12 @@ async function ultimateBoot() {
             clicks INT DEFAULT 0,
             recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
+    `);
+
+    // 5. FORCE-PATCH missing KPI columns into analytics
+    await pool.query(`
+        ALTER TABLE notification_analytics ADD COLUMN IF NOT EXISTS delivered INT DEFAULT 0;
+        ALTER TABLE notification_analytics ADD COLUMN IF NOT EXISTS opened INT DEFAULT 0;
     `);
     // ---------------------------------------------------------
       
