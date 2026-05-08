@@ -7,6 +7,7 @@
 //     const adsComplianceRoutes = require('./api/ads-compliance-routes');
 //     app.use('/api', adsComplianceRoutes);
 // ═══════════════════════════════════════════════════════════════════
+const { authenticateToken } = require('../middleware/auth');
 
 const express  = require('express');
 const router   = express.Router();
@@ -325,7 +326,7 @@ router.patch('/compliance/dpdpa/:id', async (req, res) => {
  * GET /api/compliance/consent-counts
  * Returns aggregate consent counts for the Consent Log Overview widget.
  */
-router.get('/compliance/consent-counts', async (req, res) => {
+router.get('/compliance/consent-counts', authenticateToken, async (req, res) => {
   try {
     const { rows } = await db.query(
       `SELECT COUNT(*) AS total, COUNT(*) FILTER (WHERE consent_type='parental') AS parental FROM consent_logs`
