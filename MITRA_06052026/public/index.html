@@ -4568,7 +4568,7 @@ function initAllCharts() {
   Chart.defaults.font.family = "'DM Sans', sans-serif";
   Chart.defaults.plugins.legend.labels.boxWidth = 12;
 
-  const createChart = (id, type, labels, datasets, options = {}) => {
+  window.createChart = (id, type, labels, datasets, options = {}) => {
     // Safety check: Find the canvas first
     const canvasElement = document.getElementById(id);
     
