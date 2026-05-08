@@ -428,14 +428,29 @@ function renderCERTInChecklist() {
 
 async function loadConsentCounts() {
   try {
-    const res = await fetch('/api/compliance/consent-counts');
-    if (!res.ok) return;
+    const token = localStorage.getItem('token'); // Grab your ID card from the browser
+    const res = await fetch('/api/compliance/consent-counts', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`, // Present the ID to the server
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!res.ok) {
+      console.error('Consent fetch failed:', res.status);
+      return;
+    }
+
     const d = await res.json();
     const tot = document.getElementById('cl-total');
     const par = document.getElementById('cl-parental');
-    if (tot && d.total !== undefined) tot.textContent = d.total.toLocaleString();
-    if (par && d.parental !== undefined) par.textContent = d.parental.toLocaleString();
-  } catch (e) { /* use default placeholder values */ }
+
+    if (tot && d.total !== undefined) tot.textContent = d.total.toLocaleString('en-IN');
+    if (par && d.parental !== undefined) par.textContent = d.parental.toLocaleString('en-IN');
+  } catch (e) { 
+    console.warn("Could not load real-time consent data, using defaults.");
+  }
 }
 
 function refreshComplianceStatus() {
