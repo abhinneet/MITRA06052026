@@ -428,11 +428,13 @@ function renderCERTInChecklist() {
 
 async function loadConsentCounts() {
   try {
-    const token = localStorage.getItem('token'); // Grab your ID card from the browser
+    // USE THIS KEY:
+    const token = localStorage.getItem('mitra_token'); 
+    
     const res = await fetch('/api/compliance/consent-counts', {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${token}`, // Present the ID to the server
+        'Authorization': `Bearer ${token}`, 
         'Content-Type': 'application/json'
       }
     });
@@ -449,7 +451,7 @@ async function loadConsentCounts() {
     if (tot && d.total !== undefined) tot.textContent = d.total.toLocaleString('en-IN');
     if (par && d.parental !== undefined) par.textContent = d.parental.toLocaleString('en-IN');
   } catch (e) { 
-    console.warn("Could not load real-time consent data, using defaults.");
+    console.warn("Could not load real-time consent data.");
   }
 }
 
