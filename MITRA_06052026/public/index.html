@@ -3718,7 +3718,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
           </div>
           <button style="background: #1e293b; border: 1px solid #475569; color: #e2e8f0; padding: 8px 16px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: bold;">✏️ Edit Settings</button>
       </div>
-  </div>  <style>
+  </div>  
+
+  <style>
       input:checked + span { background-color: #10b981 !important; }
       input:checked + span + .slider-dot { transform: translateX(20px); }
   </style>
@@ -4576,6 +4578,13 @@ function initAllCharts() {
       return; 
     }
 
+    // ⚡ THE FIX: Check if a chart already exists on this canvas and destroy it
+    let existingChart = Chart.getChart(id);
+    if (existingChart !== undefined) {
+      existingChart.destroy();
+    }
+
+    // Now safely create the new chart
     new Chart(canvasElement, {
       type: type,
       data: { labels: labels, datasets: datasets },
@@ -4600,7 +4609,7 @@ function initAllCharts() {
   createChart('chart-replay', 'bar', ['Atoms', 'Fractions', 'Mughals', 'Solar Sys'], [
     { label: 'Avg Replays per Student', data: [2.4, 3.1, 1.2, 1.8], backgroundColor: '#6366f1', borderRadius: 4 }
   ]);
-
+}
   createChart('chart-language', 'doughnut', ['Hindi', 'English', 'Marathi', 'Gujarati'], [
     { data: [45, 30, 15, 10], backgroundColor: ['#ec4899', '#6366f1', '#10b981', '#f59e0b'], borderWidth: 0 }
   ], { cutout: '70%' });
