@@ -16,8 +16,37 @@ async function ultimateBoot() {
     const schemaPath = path.join(__dirname, 'schema.sql');
     const schema = fs.readFileSync(schemaPath, 'utf8');
     await pool.query(schema);
-     
-    console.log('✅ All database tables (including Quizzes) perfectly built.');
+
+    // ---------------------------------------------------------
+    // ⚡ MISSING TABLES INJECTED HERE ⚡
+    // ---------------------------------------------------------
+    
+    // 2a. Create Curriculum Topics Table
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS curriculum_topics (
+            id SERIAL PRIMARY KEY,
+            topic_name VARCHAR(255) NOT NULL,
+            standard VARCHAR(50),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    `);
+
+    // 2b. Create Push Notifications / Ads Table
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS push_notifications (
+            id SERIAL PRIMARY KEY,
+            title VARCHAR(255) NOT NULL,
+            message TEXT NOT NULL,
+            topic VARCHAR(255),
+            status VARCHAR(50) DEFAULT 'sent',
+            target_state VARCHAR(100),
+            impressions INT DEFAULT 0,
+            sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    `);
+    // ---------------------------------------------------------
+      
+    console.log('✅ All database tables (including Quizzes, Curriculum, & Ads) perfectly built.');
 
     // 3. Securely Inject the Master Admin
     const hashedPassword = await bcrypt.hash('admin123', 10);
