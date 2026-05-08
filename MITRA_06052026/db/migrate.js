@@ -21,7 +21,7 @@ async function ultimateBoot() {
     // ⚡ MISSING TABLES INJECTED HERE ⚡
     // ---------------------------------------------------------
     
-    // 2a. Create Curriculum Topics Table
+    // 1. Create Curriculum Topics Table
     await pool.query(`
         CREATE TABLE IF NOT EXISTS curriculum_topics (
             id SERIAL PRIMARY KEY,
@@ -31,17 +31,36 @@ async function ultimateBoot() {
         );
     `);
 
-    // 2b. Create Push Notifications / Ads Table
+    // 2. Create Push Notifications / Ads Table
     await pool.query(`
         CREATE TABLE IF NOT EXISTS push_notifications (
             id SERIAL PRIMARY KEY,
             title VARCHAR(255) NOT NULL,
             message TEXT NOT NULL,
-            topic VARCHAR(255),
             status VARCHAR(50) DEFAULT 'sent',
             target_state VARCHAR(100),
             impressions INT DEFAULT 0,
             sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    `);
+
+    // 3. FORCE-PATCH missing columns into push_notifications
+    await pool.query(`
+        ALTER TABLE push_notifications 
+        ADD COLUMN IF NOT EXISTS topic VARCHAR(255),
+        ADD COLUMN IF NOT EXISTS subject VARCHAR(255),
+        ADD COLUMN IF NOT EXISTS class_name VARCHAR(100),
+        ADD COLUMN IF NOT EXISTS sent_by VARCHAR(255);
+    `);
+
+    // 4. Create Notification Analytics Table
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS notification_analytics (
+            id SERIAL PRIMARY KEY,
+            notification_id INT,
+            impressions INT DEFAULT 0,
+            clicks INT DEFAULT 0,
+            recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
     `);
     // ---------------------------------------------------------
