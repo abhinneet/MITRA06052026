@@ -14,6 +14,7 @@ const { authLimiter, apiLimiter, complianceLimiter, notifSendLimiter } = require
 const path        = require('path');
 
 const { testConnection } = require('./db');
+const adsRoutes = require('./api/ads-compliance-routes');
 
 // ── Route Imports ────────────────────────────────────────────────────────────
 const authRoutes            = require('./routes/auth');
@@ -107,6 +108,7 @@ app.use('/api/users',        usersRoutes);            // BUG-FIX #1: was missing
 app.use('/api/ads',          advertisementsRoutes);   // BUG-FIX #1: was missing
 app.use('/api/tenant',       tenantRoutes);           // NEW: Tenant Database Links
 app.use('/api/geofence',     geofenceRoutes);          // FIX: geofence was never registered
+app.use('/api', adsRoutes);
 
 // ── Health Check ──────────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
