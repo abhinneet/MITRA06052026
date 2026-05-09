@@ -68,61 +68,47 @@ async function ultimateBoot() {
     // ---------------------------------------------------------
 
     // ---------------------------------------------------------
-    // ⚡ COMPLIANCE DASHBOARD: TABLES & DUMMY DATA ⚡
+    // ⚡ COMPLIANCE DASHBOARD: SELF-HEALING TABLES & DATA ⚡
     // ---------------------------------------------------------
     
-    // 1. Ensure Compliance Tables Exist
+    // 1. Ensure Tables exist
     await pool.query(`
-        CREATE TABLE IF NOT EXISTS compliance_findings (
-            id SERIAL PRIMARY KEY, title VARCHAR(255), description TEXT, 
-            severity VARCHAR(50), status VARCHAR(50) DEFAULT 'open', 
-            resolved_at TIMESTAMP, resolved_by VARCHAR(255)
-        );
-        CREATE TABLE IF NOT EXISTS dpdpa_checklist (
-            id SERIAL PRIMARY KEY, item_text TEXT, done BOOLEAN DEFAULT false, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-        CREATE TABLE IF NOT EXISTS consent_logs (
-            id SERIAL PRIMARY KEY, user_id VARCHAR(255), consent_type VARCHAR(50), 
-            consent_given BOOLEAN, ip_address VARCHAR(50), user_agent TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-        CREATE TABLE IF NOT EXISTS compliance_officers (
-            role VARCHAR(50) PRIMARY KEY, name VARCHAR(255), email VARCHAR(255), phone VARCHAR(50), updated_at TIMESTAMP
-        );
+        CREATE TABLE IF NOT EXISTS compliance_findings (id SERIAL PRIMARY KEY);
+        CREATE TABLE IF NOT EXISTS dpdpa_checklist (id SERIAL PRIMARY KEY);
+        CREATE TABLE IF NOT EXISTS consent_logs (id SERIAL PRIMARY KEY);
     `);
 
-    // 2. Inject Dummy Data so the UI has something to draw! Delete this once the app is live
+    // 2. Force-patch the columns (One by one for safety)
+    // For Findings
+    await pool.query(`ALTER TABLE compliance_findings ADD COLUMN IF NOT EXISTS title VARCHAR(255);`);
+    await pool.query(`ALTER TABLE compliance_findings ADD COLUMN IF NOT EXISTS description TEXT;`);
+    await pool.query(`ALTER TABLE compliance_findings ADD COLUMN IF NOT EXISTS severity VARCHAR(50);`);
+    await pool.query(`ALTER TABLE compliance_findings ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'open';`);
+
+    // For Checklist (This fixes your specific error!)
+    await pool.query(`ALTER TABLE dpdpa_checklist ADD COLUMN IF NOT EXISTS item_text TEXT;`);
+    await pool.query(`ALTER TABLE dpdpa_checklist ADD COLUMN IF NOT EXISTS done BOOLEAN DEFAULT false;`);
+
+    // For Consent Logs
+    await pool.query(`ALTER TABLE consent_logs ADD COLUMN IF NOT EXISTS user_id VARCHAR(255);`);
+    await pool.query(`ALTER TABLE consent_logs ADD COLUMN IF NOT EXISTS consent_type VARCHAR(50);`);
+    await pool.query(`ALTER TABLE consent_logs ADD COLUMN IF NOT EXISTS consent_given BOOLEAN;`);
+
+    // 3. Inject Dummy Data
     await pool.query(`
-        -- Inject Fake Findings
         INSERT INTO compliance_findings (title, description, severity, status)
         SELECT 'Unencrypted Endpoint', 'Found API without HTTPS', 'high', 'open'
-        WHERE NOT EXISTS (SELECT 1 FROM compliance_findings);
-        
-        INSERT INTO compliance_findings (title, description, severity, status)
-        SELECT 'Database Password in Logs', 'Remove hardcoded credentials', 'critical', 'open'
-        WHERE NOT EXISTS (SELECT 1 FROM compliance_findings WHERE severity = 'critical');
+        WHERE NOT EXISTS (SELECT 1 FROM compliance_findings WHERE title = 'Unencrypted Endpoint');
 
-        INSERT INTO compliance_findings (title, description, severity, status)
-        SELECT 'Outdated Node Version', 'Upgrade to Node 20', 'medium', 'resolved'
-        WHERE NOT EXISTS (SELECT 1 FROM compliance_findings WHERE severity = 'medium');
-
-        -- Inject DPDPA Checklist
         INSERT INTO dpdpa_checklist (item_text, done)
         SELECT 'Appoint Data Protection Officer (DPO)', true
-        WHERE NOT EXISTS (SELECT 1 FROM dpdpa_checklist);
+        WHERE NOT EXISTS (SELECT 1 FROM dpdpa_checklist WHERE item_text = 'Appoint Data Protection Officer (DPO)');
 
-        INSERT INTO dpdpa_checklist (item_text, done)
-        SELECT 'Implement Verifiable Parental Consent mechanism', false
-        WHERE NOT EXISTS (SELECT 1 FROM dpdpa_checklist WHERE item_text LIKE '%Parental%');
-
-        -- Inject Consent Logs (Adding a few to make the charts look good)
-        INSERT INTO consent_logs (user_id, consent_type, consent_given, ip_address)
-        SELECT 'student_001', 'parental', true, '192.168.1.10'
-        WHERE NOT EXISTS (SELECT 1 FROM consent_logs);
-
-        INSERT INTO consent_logs (user_id, consent_type, consent_given, ip_address)
-        SELECT 'student_002', 'standard', true, '192.168.1.11'
-        WHERE NOT EXISTS (SELECT 1 FROM consent_logs WHERE user_id = 'student_002');
+        INSERT INTO consent_logs (user_id, consent_type, consent_given)
+        SELECT 'demo_user_01', 'parental', true
+        WHERE NOT EXISTS (SELECT 1 FROM consent_logs WHERE user_id = 'demo_user_01');
     `);
+    
     // Delete till here---------------------------------------------------------
       
     console.log('✅ All database tables (including Quizzes, Curriculum, & Ads) perfectly built.');
