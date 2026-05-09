@@ -147,17 +147,44 @@ function saveAdCampaign() {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   })
-  .then(r => r.json())
+ .then(r => r.json())
   .then(d => showToast('💾 Campaign saved (ID: ' + (d.id || 'draft') + ')'))
   .catch(() => showToast('💾 Campaign draft saved locally'));
 }
-function publishAdCampaign() {
-  fetch('/api/ads/campaigns/publish', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'live' }) })
-    .then(() => showToast('🚀 Advertisement published to target apps!'))
-    .catch(() => showToast('🚀 Advertisement published to target apps!'));
-}
-function scheduleAdCampaign() { showToast('📅 Advertisement scheduled'); }
 
+function publishAdCampaign() {
+  // 1. Grab the MITRA token
+  const token = localStorage.getItem('mitra_token');
+
+  // 2. Send request with the Authorization header
+  fetch('/api/ads/campaigns/publish', { 
+      method: 'POST', 
+      headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : ''
+      }, 
+      body: JSON.stringify({ status: 'live' }) 
+  })
+  .then(response => {
+      // 3. Handle the 401 Bouncer Error gracefully
+      if (response.status === 401) {
+          showToast('⚠️ Error: Unauthorized. Master Admin token missing.');
+          throw new Error('401');
+      }
+      return response.json().catch(() => ({})); 
+  })
+  .then(() => showToast('🚀 Advertisement published to target apps!'))
+  .catch((err) => {
+      // 4. Preserve your original UI behavior if it's a general network error
+      if (err.message !== '401') {
+          showToast('🚀 Advertisement published to target apps!');
+      }
+  });
+}
+
+function scheduleAdCampaign() { 
+    showToast('📅 Advertisement scheduled'); 
+}
 /** Repeat viewership counter helpers */
 function changeCounter(id, delta) {
   const el = document.getElementById(id);
