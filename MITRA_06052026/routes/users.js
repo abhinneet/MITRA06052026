@@ -231,19 +231,24 @@ router.put('/:id', requirePerm('perm_create_users'), async (req, res) => {
 router.delete('/:id', requirePerm('perm_create_users'), async (req, res) => {
   try {
     const { id } = req.params;
+    
+    // ⚡ THE MAGIC FIX: Applied the same ::text conversion here!
     // Hard delete from users table per DPDP §12
     const result = await query(
-      `DELETE FROM users WHERE id = $1 RETURNING id, email`, [id]
+      `DELETE FROM users WHERE id::text = $1::text RETURNING id, email`, [id]
     );
+    
     if (!result.rows.length) return res.status(404).json({ error: 'User not found' });
+    
     res.json({
       success: true,
       message: `User ${result.rows[0].email} permanently deleted (DPDP Right to Erasure §12)`,
       deleted_id: result.rows[0].id
     });
   } catch (err) {
-    console.error('[users/delete]', err);
-    res.status(500).json({ error: 'Delete failed' });
+    // Also added better error logging here so it's not silent!
+    console.error('❌ [users/delete] Individual Delete Crash:', err);
+    res.status(500).json({ error: 'Delete failed', details: err.message });
   }
 });
 
