@@ -695,26 +695,48 @@ function _escHTML(str) {
 // COMPLIANCE ACTION BUTTONS
 // ──────────────────────────────────────────────────────────────────
 // Function 1: Handle the Toggles (Erasure & Withdrawal)
-async function updateComplianceSetting(featureName, isEnabled) {
+async function updateComplianceSetting(settingKey, isEnabled) {
+    // 1. Grab the MITRA token
+    const token = localStorage.getItem('mitra_token');
+
     try {
-        const token = localStorage.getItem('mitra_token');
-        const res = await fetch('/api/compliance/settings', {
+        // 2. Send the secure request
+        const response = await fetch('/api/compliance/settings', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                // ⚡ INJECT THE SECURITY BADGE HERE ⚡
+                'Authorization': token ? `Bearer ${token}` : ''
             },
-            body: JSON.stringify({ feature: featureName, active: isEnabled })
+            // Note: Adjust the body payload if your backend expects different keys
+            body: JSON.stringify({ key: settingKey, value: isEnabled.toString() })
         });
 
-        if (res.ok) {
-            // Optional: You can trigger a small toast notification here
-            console.log(`${featureName} is now ${isEnabled ? 'ENABLED' : 'DISABLED'}`);
-            // This forces your tracker to refresh and show the ✅
-            setTimeout(checkComplianceStatus, 500); 
+        // 3. Handle the response
+        if (!response.ok) {
+            if (response.status === 401) {
+                alert("⚠️ Error: Unauthorized. Master Admin token missing.");
+                // Visually flip the toggle back off since it failed to save
+                const toggle = document.getElementById(`toggle-${settingKey}`);
+                if (toggle) toggle.checked = !isEnabled;
+                return;
+            }
+            throw new Error(`Server error: ${response.status}`);
         }
-    } catch (e) {
+
+        // 4. Success!
+        console.log(`✅ Setting [${settingKey}] successfully updated to ${isEnabled}`);
+        
+        // Optional: If you use showToast, uncomment the line below
+        // showToast(`✅ ${settingKey} is now ${isEnabled ? 'ENABLED' : 'DISABLED'}`);
+
+    } catch (error) {
+        console.error("❌ Failed to update setting:", error);
         alert("Failed to update setting. Check connection.");
+        
+        // Visually flip the toggle back off since the network failed
+        const toggle = document.getElementById(`toggle-${settingKey}`);
+        if (toggle) toggle.checked = !isEnabled;
     }
 }
 
