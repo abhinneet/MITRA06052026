@@ -68,42 +68,41 @@ async function ultimateBoot() {
     // ---------------------------------------------------------
 
     // ---------------------------------------------------------
-    // ⚡ COMPLIANCE DASHBOARD: SELF-HEALING TABLES & DATA ⚡
+    // ⚡ COMPLIANCE DASHBOARD: FINAL "NOT-NULL" REPAIR ⚡
     // ---------------------------------------------------------
     
-    // 1. Ensure Tables exist
-    await pool.query(`
-        CREATE TABLE IF NOT EXISTS compliance_findings (id SERIAL PRIMARY KEY);
-        CREATE TABLE IF NOT EXISTS dpdpa_checklist (id SERIAL PRIMARY KEY);
-        CREATE TABLE IF NOT EXISTS consent_logs (id SERIAL PRIMARY KEY);
-    `);
-
-    // 2. Force-patch the columns (One by one for safety)
-    // For Findings
-    await pool.query(`ALTER TABLE compliance_findings ADD COLUMN IF NOT EXISTS title VARCHAR(255);`);
-    await pool.query(`ALTER TABLE compliance_findings ADD COLUMN IF NOT EXISTS description TEXT;`);
-    await pool.query(`ALTER TABLE compliance_findings ADD COLUMN IF NOT EXISTS severity VARCHAR(50);`);
-    await pool.query(`ALTER TABLE compliance_findings ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'open';`);
-
-    // For Checklist (This fixes your specific error!)
+    // 1. Ensure Columns exist (Handling both 'label' and 'item_text' naming styles)
     await pool.query(`ALTER TABLE dpdpa_checklist ADD COLUMN IF NOT EXISTS item_text TEXT;`);
+    await pool.query(`ALTER TABLE dpdpa_checklist ADD COLUMN IF NOT EXISTS label TEXT;`);
     await pool.query(`ALTER TABLE dpdpa_checklist ADD COLUMN IF NOT EXISTS done BOOLEAN DEFAULT false;`);
 
-    // For Consent Logs
-    await pool.query(`ALTER TABLE consent_logs ADD COLUMN IF NOT EXISTS user_id VARCHAR(255);`);
-    await pool.query(`ALTER TABLE consent_logs ADD COLUMN IF NOT EXISTS consent_type VARCHAR(50);`);
-    await pool.query(`ALTER TABLE consent_logs ADD COLUMN IF NOT EXISTS consent_given BOOLEAN;`);
-
-    // 3. Inject Dummy Data
+    // 2. Inject Dummy Data (Filling BOTH columns so the NOT-NULL constraint is satisfied)**Delete Dummy data after going live**
     await pool.query(`
-        INSERT INTO compliance_findings (title, description, severity, status)
-        SELECT 'Unencrypted Endpoint', 'Found API without HTTPS', 'high', 'open'
-        WHERE NOT EXISTS (SELECT 1 FROM compliance_findings WHERE title = 'Unencrypted Endpoint');
+        INSERT INTO dpdpa_checklist (item_text, label, done)
+        SELECT 
+            'Appoint Data Protection Officer (DPO)', 
+            'DPO Appointment', 
+            true
+        WHERE NOT EXISTS (
+            SELECT 1 FROM dpdpa_checklist 
+            WHERE item_text = 'Appoint Data Protection Officer (DPO)' 
+            OR label = 'DPO Appointment'
+        );
 
-        INSERT INTO dpdpa_checklist (item_text, done)
-        SELECT 'Appoint Data Protection Officer (DPO)', true
-        WHERE NOT EXISTS (SELECT 1 FROM dpdpa_checklist WHERE item_text = 'Appoint Data Protection Officer (DPO)');
+        INSERT INTO dpdpa_checklist (item_text, label, done)
+        SELECT 
+            'Implement Parental Consent mechanism', 
+            'Parental Consent', 
+            false
+        WHERE NOT EXISTS (
+            SELECT 1 FROM dpdpa_checklist 
+            WHERE item_text = 'Implement Parental Consent mechanism' 
+            OR label = 'Parental Consent'
+        );
+    `);
 
+    // 3. Populate Consent Logs for the chart
+    await pool.query(`
         INSERT INTO consent_logs (user_id, consent_type, consent_given)
         SELECT 'demo_user_01', 'parental', true
         WHERE NOT EXISTS (SELECT 1 FROM consent_logs WHERE user_id = 'demo_user_01');
