@@ -97,7 +97,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .main{flex:1;overflow-y:auto;overflow-x:hidden}
 .page{display:none;padding:24px;padding-top:16px;margin-top:0!important}
 .page.on{display:block}
-#page-notifications,#page-legal,#page-settings,#page-controls,#page-ar-assets{padding-top:14px}
+#page-notifications,#page-compliance,#page-settings,#page-controls,#page-ar-assets{padding-top:14px}
 .hero{margin-top:0!important}
 
 /* ── CARDS ── */
@@ -3216,7 +3216,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         </div>
         <div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">
           <a href="/privacy-policy.html" target="_blank" class="btn btn-s btn-sm" style="text-decoration:none;justify-content:center">📄 Privacy Policy</a>
-          <button class="btn btn-s btn-sm" data-page="legal" onclick="showPage('legal',this)">⚖️ Legal &amp; Compliance</button>
+          <button class="btn btn-s btn-sm" data-page="compliance" onclick="showPage('compliance',this)">⚖️ Legal &amp; Compliance</button>
         </div>
       </div>
     </div>
@@ -9667,7 +9667,7 @@ window.showPage = function(pageId, topBtn, sbBtn) {
 
 // Init compliance checklist on page load if legal page is active
 document.addEventListener('DOMContentLoaded', () => {
-  if (document.getElementById('page-legal')?.classList.contains('on')) {
+  if (document.getElementById('page-compliance')?.classList.contains('on')) {
     renderComplianceChecklist();
   }
   // Populate tenant state filter
