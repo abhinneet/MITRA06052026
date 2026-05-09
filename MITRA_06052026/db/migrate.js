@@ -101,11 +101,25 @@ async function ultimateBoot() {
         );
     `);
 
-    // 3. Populate Consent Logs for the chart
+    // ---------------------------------------------------------
+    // ⚡ 3. Populate Consent Logs (With Type-Correction) ⚡
+    // ---------------------------------------------------------
+    
+    // First, fix the 'Integer' roadblock by changing the column to VARCHAR
+    await pool.query(`
+        ALTER TABLE consent_logs 
+        ALTER COLUMN user_id TYPE VARCHAR(255);
+    `);
+
+    // Now, safely insert the demo data
     await pool.query(`
         INSERT INTO consent_logs (user_id, consent_type, consent_given)
         SELECT 'demo_user_01', 'parental', true
         WHERE NOT EXISTS (SELECT 1 FROM consent_logs WHERE user_id = 'demo_user_01');
+
+        INSERT INTO consent_logs (user_id, consent_type, consent_given)
+        SELECT 'demo_user_02', 'standard', true
+        WHERE NOT EXISTS (SELECT 1 FROM consent_logs WHERE user_id = 'demo_user_02');
     `);
     
     // Delete till here---------------------------------------------------------
