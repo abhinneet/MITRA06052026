@@ -137,8 +137,8 @@ router.post('/bulk-update', requirePerm('perm_create_users'), async (req, res) =
     
     params.push(idArray);
     
-    // 2. THE ACTUAL FIX: Changed ::uuid[] to ::text[] to prevent database type mismatch panics
-    await query(`UPDATE users SET ${updates.join(', ')}, updated_at=NOW() WHERE id = ANY($${pi}::text[])`, params);
+    // 2. THE ACTUAL FIX: Changed ::text[] to ::uuid[] to prevent database type mismatch panics
+    await query(`UPDATE users SET ${updates.join(', ')}, updated_at=NOW() WHERE id = ANY($${pi}::uuid[])`, params);
     
     res.json({ success: true, updated: idArray.length });
     
