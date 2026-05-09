@@ -164,25 +164,28 @@ router.delete('/bulk-delete', requirePerm('perm_create_users'), async (req, res)
   try {
     const { ids } = req.body;
     
+    // 🕵️‍♂️ TRACKING THE GHOST: Print exactly what the frontend sends!
+    console.log("👉 FRONTEND SENT THESE IDs TO DELETE:", ids);
+    
     if (!ids || ids.length === 0) {
         return res.status(400).json({ error: 'No user IDs provided' });
     }
 
-    // 1. Safely format the array (just in case the frontend sends a single string)
     const idArray = Array.isArray(ids) ? ids : [ids];
     
-    // 2. ⚡ THE MAGIC FIX: Convert column and input to text to bypass UUID strictness!
+    // Convert column and input to text to bypass UUID strictness
     const result = await query(`DELETE FROM users WHERE id::text = ANY($1::text[]) RETURNING id`, [idArray]);
+    
+    // 🕵️‍♂️ TRACKING THE GHOST: Print how many actually got deleted!
+    console.log(`✅ DATABASE ACTUALLY DELETED: ${result.rowCount} rows`);
     
     res.json({ success: true, deleted: result.rowCount });
     
   } catch (e) { 
-    // 3. Print the actual error so we never have to guess again!
     console.error("❌ Bulk delete error:", e); 
     res.status(500).json({ error: 'Bulk delete failed', details: e.message }); 
   }
 });
-
 // GET /api/users/:id
 router.get('/:id', requirePerm('perm_create_users'), async (req, res) => {
   try {
