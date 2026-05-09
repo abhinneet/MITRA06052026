@@ -3648,19 +3648,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 <div class="page" id="page-compliance">
   
-  <div class="sh">
-    <div>
-      <div class="sh-title" style="font-size: 24px; font-weight: bold; margin-bottom: 5px;">⚖️ Legal, Compliance & Security</div>
-      <div class="sh-sub" style="color: #94a3b8; font-size: 14px;">Indian law compliance status, audit findings, DPDPA tracker, and bulk data export for analysis.</div>
-    </div>
-    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-      <button class="btn btn-p btn-sm" onclick="downloadComplianceSummary()">📋 Download Summary</button>
-      <button class="btn btn-g btn-sm" onclick="exportComplianceXLSX()">📥 Export All — XLSX</button>
-      <button class="btn btn-s btn-sm" onclick="exportComplianceCSV()">📥 Export — CSV</button>
-      <button class="btn btn-sm" onclick="openCertificateModal()" style="background:linear-gradient(135deg,#4f46e5,#06b6d4);color:#fff;border:none">🏅 Certificate</button>
+  <div class="hero" style="background:linear-gradient(135deg,rgba(99,102,241,.12),rgba(16,185,129,.08),rgba(236,72,153,.06));border-color:rgba(99,102,241,.25);margin-bottom:20px">
+    <div class="hero-title">⚖️ <span class="grad">Legal, Compliance & Security</span></div>
+    <div style="font-size:13px;color:var(--text2);max-width:640px;line-height:1.6">Indian law compliance status, audit findings, DPDPA tracker, and bulk data export for analysis.</div>
+    <div style="display:flex; gap:10px; margin-top:14px; flex-wrap:wrap;">
+      <button class="btn btn-p" onclick="downloadComplianceSummary()">📋 Download Summary</button>
+      <button class="btn btn-s" onclick="exportComplianceXLSX()">📥 Export All — XLSX</button>
+      <button class="btn btn-s" onclick="exportComplianceCSV()">📥 Export — CSV</button>
+      <button class="btn" onclick="openCertificateModal()" style="background:linear-gradient(135deg,#4f46e5,#06b6d4);color:#fff;border:none">🏅 Certificate</button>
     </div>
   </div>
-
+  
   <div id="dpo-command-center" style="background: #1e293b; padding: 25px; border-radius: 12px; border: 1px solid #334155; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
       <h3 style="margin-top: 0; color: #f8fafc; display: flex; align-items: center; gap: 8px; font-size: 18px;">
           ⚡ Auto-Enforce DPDPA Features
