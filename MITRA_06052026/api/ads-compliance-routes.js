@@ -443,20 +443,46 @@ router.post('/compliance/dpo', authenticate, masterAdminOnly, async (req, res) =
     }
 });
 
-// ⚡ 2. Route to save App Toggles (Erasure/Withdrawal)
+// ⚡ 2. Route to save App Toggles (Erasure/Withdrawal & DPO)
 router.post('/compliance/settings', authenticate, masterAdminOnly, async (req, res) => {
     try {
-        const { feature, active } = req.body;
+        // 1. Safely handle the payload (checking for both naming conventions just in case)
+        const inputKey = req.body.key || req.body.feature;
+        const inputValue = req.body.value !== undefined ? req.body.value : req.body.active;
+
+        // 2. Prevent the toString() crash if data is missing
+        if (inputKey === undefined || inputValue === undefined) {
+            return res.status(400).json({ success: false, error: "Missing key or value" });
+        }
+
+        // Safely convert to string
+        const safeValue = String(inputValue);
+
         if (db && db.query) {
+            // 3. Save to app_configs (using the correct column names: 'key' and 'value')
             await db.query(
-                `INSERT INTO app_configs (config_key, config_value) VALUES ($1, $2) ON CONFLICT (config_key) DO UPDATE SET config_value = EXCLUDED.config_value`, 
-                [feature, active.toString()]
+                `INSERT INTO app_configs (key, value) 
+                 VALUES ($1, $2) 
+                 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`, 
+                [inputKey, safeValue]
+            );
+
+            // 4. Also mirror it to compliance_settings so both dashboards sync perfectly
+            await db.query(
+                `INSERT INTO compliance_settings (key, value) 
+                 VALUES ($1, $2) 
+                 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`, 
+                [inputKey, safeValue]
             );
         }
-        res.json({ success: true });
+        
+        // 5. Send actual success response
+        res.json({ success: true, saved: { key: inputKey, value: safeValue } });
+
     } catch (err) {
-        console.error("Settings Save Error:", err);
-        res.json({ success: true });
+        console.error("❌ Settings Save Error:", err);
+        // 6. Send a REAL error status so the frontend knows it failed
+        res.status(500).json({ success: false, error: "Database error" });
     }
 });
 
