@@ -148,7 +148,8 @@ router.post('/bulk-update', requirePerm('perm_create_users'), async (req, res) =
     }
     
     // Execute the actual update (Note: using ::uuid[] since the array is now safely formatted)
-    await query(`UPDATE users SET ${updates.join(', ')}, updated_at=NOW() WHERE id = ANY($${pi}::uuid[])`, params);
+    // Magic Fix: Convert the column to text (id::text) AND the incoming array to text (::text[])
+await query(`UPDATE users SET ${updates.join(', ')}, updated_at=NOW() WHERE id::text = ANY($${pi}::text[])`, params);
     
     res.json({ success: true, updated: idArray.length });
     
