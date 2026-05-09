@@ -152,5 +152,49 @@ async function ultimateBoot() {
     process.exit(1);
   }
 }
+// ---------------------------------------------------------
+    // 🛠️ FINAL ARCHITECTURE REPAIR: MISSING COMPLIANCE COLUMNS
+    // ---------------------------------------------------------
+
+    // 1. Fix the "Purge Reason" and "Incident Reports" errors
+    await pool.query(`
+        -- Add missing columns to compliance_findings if they don't exist
+        ALTER TABLE compliance_findings ADD COLUMN IF NOT EXISTS purge_reason TEXT;
+        ALTER TABLE compliance_findings ADD COLUMN IF NOT EXISTS mfa_enforced BOOLEAN DEFAULT false;
+
+        -- Create the Incident Reports table
+        CREATE TABLE IF NOT EXISTS incident_reports (
+            id SERIAL PRIMARY KEY,
+            title VARCHAR(255),
+            description TEXT,
+            severity VARCHAR(50),
+            reported_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
+        -- Create the Compliance Settings table
+        CREATE TABLE IF NOT EXISTS compliance_settings (
+            key VARCHAR(100) PRIMARY KEY,
+            value TEXT,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
+        -- Inject a default setting so the 'auto-purge-status' route finds something
+        INSERT INTO compliance_settings (key, value)
+        VALUES ('auto_purge', 'disabled')
+        ON CONFLICT (key) DO NOTHING;
+    `);
+
+    // 2. Fix the "UUID = INTEGER" mismatch
+    // This happens because the audit-logs query is trying to compare a 
+    // number to a UUID. We ensure the audit_logs table uses the correct type.
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS audit_logs (
+            id SERIAL PRIMARY KEY,
+            user_id TEXT, -- Changed to TEXT to avoid UUID/INT conflicts
+            action VARCHAR(255),
+            details JSONB,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    `);
 
 ultimateBoot();
