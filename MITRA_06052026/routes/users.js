@@ -163,10 +163,24 @@ await query(`UPDATE users SET ${updates.join(', ')}, updated_at=NOW() WHERE id::
 router.delete('/bulk-delete', requirePerm('perm_create_users'), async (req, res) => {
   try {
     const { ids } = req.body;
-    if (!ids?.length) return res.status(400).json({ error: 'No user IDs provided' });
-    const result = await query(`DELETE FROM users WHERE id = ANY($1::uuid[]) RETURNING id`, [ids]);
+    
+    if (!ids || ids.length === 0) {
+        return res.status(400).json({ error: 'No user IDs provided' });
+    }
+
+    // 1. Safely format the array (just in case the frontend sends a single string)
+    const idArray = Array.isArray(ids) ? ids : [ids];
+    
+    // 2. ⚡ THE MAGIC FIX: Convert column and input to text to bypass UUID strictness!
+    const result = await query(`DELETE FROM users WHERE id::text = ANY($1::text[]) RETURNING id`, [idArray]);
+    
     res.json({ success: true, deleted: result.rowCount });
-  } catch (e) { res.status(500).json({ error: 'Bulk delete failed' }); }
+    
+  } catch (e) { 
+    // 3. Print the actual error so we never have to guess again!
+    console.error("❌ Bulk delete error:", e); 
+    res.status(500).json({ error: 'Bulk delete failed', details: e.message }); 
+  }
 });
 
 // GET /api/users/:id
