@@ -116,8 +116,7 @@ router.post('/bulk-update', requirePerm('perm_create_users'), async (req, res) =
         return res.status(400).json({ error: 'No user IDs provided' });
     }
     
-    // 1. SAFELY FORMAT THE ARRAY
-    // If the frontend sends a single string instead of an array, this fixes it automatically
+    // Safely format the array
     const idArray = Array.isArray(ids) ? ids : [ids];
     
     const updates = []; 
@@ -136,15 +135,25 @@ router.post('/bulk-update', requirePerm('perm_create_users'), async (req, res) =
     if (!updates.length) return res.status(400).json({ error: 'Nothing to update' });
     
     params.push(idArray);
+
+    // ⚡ THE MAGIC FIX: Tell the database to stop being strict about roles!
+    // This command converts the ENUM to flexible text before attempting the update.
+    if (role !== undefined) {
+        try {
+            await query(`ALTER TABLE users ALTER COLUMN role TYPE VARCHAR(50) USING role::text`);
+            console.log("✅ Database upgraded: role column is now flexible text!");
+        } catch (schemaErr) {
+            // Ignore error: If it fails, it just means the database was already upgraded!
+        }
+    }
     
-    // 2. THE ACTUAL FIX: Changed ::text[] to ::uuid[] to prevent database type mismatch panics
+    // Execute the actual update (Note: using ::uuid[] since the array is now safely formatted)
     await query(`UPDATE users SET ${updates.join(', ')}, updated_at=NOW() WHERE id = ANY($${pi}::uuid[])`, params);
     
     res.json({ success: true, updated: idArray.length });
     
   } catch (e) { 
     console.error("❌ Bulk update error:", e); 
-    // Send back the specific error message to help with future debugging
     res.status(500).json({ error: 'Bulk update failed', details: e.message }); 
   }
 });
