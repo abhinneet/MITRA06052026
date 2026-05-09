@@ -8906,7 +8906,7 @@ window.showPage = function showPage(pageId, topBtn, sbBtn) {
   if (pageId === 'notifications') {
     if (!window._notifInited) { window._notifInited = true; initNotificationsPage && initNotificationsPage(); }
   }
-  if (pageId === 'legal') {
+  if (pageId === 'compliance') {
     typeof initLegalPage === 'function' && initLegalPage();
     if (!window._auditInited) { window._auditInited = true; typeof loadAuditLogs === 'function' && loadAuditLogs(); }
   }
@@ -9660,7 +9660,7 @@ window.showPage = function(pageId, topBtn, sbBtn) {
     if (!window._umInited) { window._umInited = true; initUserManagementPage(); }
     else loadUserList();
   }
-  if (pageId === 'legal') {
+  if (pageId === 'compliance') {
     renderComplianceChecklist();
   }
 };
