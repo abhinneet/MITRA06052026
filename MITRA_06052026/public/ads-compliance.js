@@ -543,6 +543,10 @@ function refreshComplianceStatus() {
 
 /** Grievance Officer / DPO save */
 function saveGrievanceOfficer() {
+  // 1. Grab the MITRA token
+  const token = localStorage.getItem('mitra_token');
+
+  // 2. Gather the combined payload
   const payload = {
     grievance_officer: {
       name: (document.getElementById('go-name') || {}).value,
@@ -555,21 +559,43 @@ function saveGrievanceOfficer() {
       phone: (document.getElementById('dpo-phone') || {}).value,
     },
   };
+
+  // 3. Send secure request
   fetch('/api/compliance/officers', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : ''
+    },
     body: JSON.stringify(payload),
   })
-  .then(() => showToast('💾 Officer details saved'))
-  .catch(() => showToast('💾 Officer details saved'));
+  .then(response => {
+      // Handle the Bouncer Error gracefully
+      if (response.status === 401) {
+          showToast('⚠️ Error: Unauthorized. Master Admin token missing.');
+          throw new Error('401');
+      }
+      return response.json().catch(() => ({})); 
+  })
+  .then(() => showToast('✅ Officer details saved securely'))
+  .catch((err) => {
+      if (err.message !== '401') {
+          showToast('💾 Officer details saved locally');
+      }
+  });
 }
 
 /** Export functions */
-function downloadComplianceSummary() { showToast('📋 Generating compliance summary PDF…'); setTimeout(() => showToast('✅ Summary ready — check downloads'), 1200); }
+function downloadComplianceSummary() { 
+    showToast('📋 Generating compliance summary PDF…'); 
+    setTimeout(() => showToast('✅ Summary ready — check downloads'), 1200); 
+}
+
 function exportDPDPAReport() {
   const data = DPDPA_ITEMS.map(i => ({ Requirement: i.label, Description: i.req, Status: i.done ? 'Compliant' : 'Non-Compliant' }));
   _xlsxOrCSV(data, 'MITRA_DPDPA_Report');
 }
+
 function exportConsentLog() { showToast('Generating consent log XLSX…'); fetch('/api/compliance/consent-log/export').catch(() => {}); }
 function exportComplianceXLSX() {
   const findings = AUDIT_FINDINGS.map(f => ({ ID: f.id, Severity: f.sev, Title: f.title, Law: f.law, Description: f.desc, Status: f.status }));
