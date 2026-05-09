@@ -66,6 +66,64 @@ async function ultimateBoot() {
     await pool.query(`ALTER TABLE notification_analytics ADD COLUMN IF NOT EXISTS opened INT DEFAULT 0;`);
     await pool.query(`ALTER TABLE notification_analytics ADD COLUMN IF NOT EXISTS clicked INT DEFAULT 0;`);
     // ---------------------------------------------------------
+
+    // ---------------------------------------------------------
+    // ⚡ COMPLIANCE DASHBOARD: TABLES & DUMMY DATA ⚡
+    // ---------------------------------------------------------
+    
+    // 1. Ensure Compliance Tables Exist
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS compliance_findings (
+            id SERIAL PRIMARY KEY, title VARCHAR(255), description TEXT, 
+            severity VARCHAR(50), status VARCHAR(50) DEFAULT 'open', 
+            resolved_at TIMESTAMP, resolved_by VARCHAR(255)
+        );
+        CREATE TABLE IF NOT EXISTS dpdpa_checklist (
+            id SERIAL PRIMARY KEY, item_text TEXT, done BOOLEAN DEFAULT false, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS consent_logs (
+            id SERIAL PRIMARY KEY, user_id VARCHAR(255), consent_type VARCHAR(50), 
+            consent_given BOOLEAN, ip_address VARCHAR(50), user_agent TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS compliance_officers (
+            role VARCHAR(50) PRIMARY KEY, name VARCHAR(255), email VARCHAR(255), phone VARCHAR(50), updated_at TIMESTAMP
+        );
+    `);
+
+    // 2. Inject Dummy Data so the UI has something to draw! Delete this once the app is live
+    await pool.query(`
+        -- Inject Fake Findings
+        INSERT INTO compliance_findings (title, description, severity, status)
+        SELECT 'Unencrypted Endpoint', 'Found API without HTTPS', 'high', 'open'
+        WHERE NOT EXISTS (SELECT 1 FROM compliance_findings);
+        
+        INSERT INTO compliance_findings (title, description, severity, status)
+        SELECT 'Database Password in Logs', 'Remove hardcoded credentials', 'critical', 'open'
+        WHERE NOT EXISTS (SELECT 1 FROM compliance_findings WHERE severity = 'critical');
+
+        INSERT INTO compliance_findings (title, description, severity, status)
+        SELECT 'Outdated Node Version', 'Upgrade to Node 20', 'medium', 'resolved'
+        WHERE NOT EXISTS (SELECT 1 FROM compliance_findings WHERE severity = 'medium');
+
+        -- Inject DPDPA Checklist
+        INSERT INTO dpdpa_checklist (item_text, done)
+        SELECT 'Appoint Data Protection Officer (DPO)', true
+        WHERE NOT EXISTS (SELECT 1 FROM dpdpa_checklist);
+
+        INSERT INTO dpdpa_checklist (item_text, done)
+        SELECT 'Implement Verifiable Parental Consent mechanism', false
+        WHERE NOT EXISTS (SELECT 1 FROM dpdpa_checklist WHERE item_text LIKE '%Parental%');
+
+        -- Inject Consent Logs (Adding a few to make the charts look good)
+        INSERT INTO consent_logs (user_id, consent_type, consent_given, ip_address)
+        SELECT 'student_001', 'parental', true, '192.168.1.10'
+        WHERE NOT EXISTS (SELECT 1 FROM consent_logs);
+
+        INSERT INTO consent_logs (user_id, consent_type, consent_given, ip_address)
+        SELECT 'student_002', 'standard', true, '192.168.1.11'
+        WHERE NOT EXISTS (SELECT 1 FROM consent_logs WHERE user_id = 'student_002');
+    `);
+    // Delete till here---------------------------------------------------------
       
     console.log('✅ All database tables (including Quizzes, Curriculum, & Ads) perfectly built.');
 
