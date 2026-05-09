@@ -742,42 +742,62 @@ async function updateComplianceSetting(settingKey, isEnabled) {
 
 // Function 2: Handle the DPO Save & UI Collapse
 async function saveDPO() {
-    const name = document.getElementById('dpo-name').value;
-    const email = document.getElementById('dpo-email').value;
+    const name = document.getElementById('dpo-name').value.trim();
+    const email = document.getElementById('dpo-email').value.trim();
 
-    if(!name || !email) return alert("Please enter both Name and Email.");
+    if (!name || !email) {
+        alert("Please enter both Name and Email.");
+        return;
+    }
+
+    // 1. Grab the MITRA token to authenticate the request
+    const token = localStorage.getItem('mitra_token');
 
     try {
-        const token = localStorage.getItem('mitra_token');
-        const res = await fetch('/api/compliance/dpo', {
+        // 2. Send the secure request to the database
+        const response = await fetch('/api/compliance/dpo', { // Update this path if your backend uses a dedicated officer route
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': token ? `Bearer ${token}` : ''
             },
-            body: JSON.stringify({ name, email })
+            body: JSON.stringify({ key: 'dpo_name', value: name, email: email })
         });
 
-        if (res.ok) {
-            // 1. Force the tracker to update the checkboxes below
-            if(typeof checkComplianceStatus === 'function') setTimeout(checkComplianceStatus, 500); 
-
-            // 2. Hide the giant Command Center
-            document.getElementById('dpo-command-center').style.display = 'none';
-
-            // 3. Populate the mini-summary bar with your live inputs
-            document.getElementById('summary-dpo-name').textContent = name;
-            document.getElementById('summary-erasure').textContent = document.getElementById('toggle-erasure').checked ? 'ON' : 'OFF';
-            document.getElementById('summary-withdrawal').textContent = document.getElementById('toggle-withdrawal').checked ? 'ON' : 'OFF';
-
-            // 4. Reveal the mini-summary bar
-            document.getElementById('dpo-summary-section').style.display = 'block';
+        if (!response.ok) {
+            if (response.status === 401) {
+                alert("⚠️ Error: Unauthorized. Master Admin token missing.");
+                return;
+            }
+            throw new Error(`Server error: ${response.status}`);
         }
-    } catch (e) {
-        console.error("Error saving DPO", e);
+
+        console.log("✅ DPO successfully saved to database");
+
+        // 3. Update the UI to show the appointment is active
+        const summaryName = document.getElementById('summary-dpo-name');
+        if (summaryName) summaryName.innerText = name;
+        
+        // Hide the input form and show the locked summary section
+        const cmdCenter = document.getElementById('dpo-command-center');
+        const summarySec = document.getElementById('dpo-summary-section');
+        
+        if (cmdCenter) cmdCenter.style.display = 'none';
+        if (summarySec) summarySec.style.display = 'block';
+
+        // 4. ⚡ Automatically update the DPDPA Tracker and Score ⚡
+        if (typeof renderDPDPATracker === 'function') {
+            await renderDPDPATracker();
+        }
+        if (typeof refreshComplianceStatus === 'function') {
+            await refreshComplianceStatus();
+        }
+
+    } catch (error) {
+        console.error("❌ Failed to save DPO:", error);
+        alert("Failed to save DPO appointment. Check connection.");
     }
 }
-
 // Function 3: Expand the panel back out for editing
 function toggleDPOEdit() {
     // Hide the summary, bring back the command center
