@@ -111,7 +111,14 @@ router.post('/', requirePerm('perm_create_users'), async (req, res) => {
 router.post('/bulk-update', requirePerm('perm_create_users'), async (req, res) => {
   try {
     const { ids, role, is_active } = req.body;
-    if (!ids?.length) return res.status(400).json({ error: 'No user IDs provided' });
+    
+    if (!ids || ids.length === 0) {
+        return res.status(400).json({ error: 'No user IDs provided' });
+    }
+    
+    // 1. SAFELY FORMAT THE ARRAY
+    // If the frontend sends a single string instead of an array, this fixes it automatically
+    const idArray = Array.isArray(ids) ? ids : [ids];
     
     const updates = []; 
     const params = []; 
@@ -128,16 +135,17 @@ router.post('/bulk-update', requirePerm('perm_create_users'), async (req, res) =
     
     if (!updates.length) return res.status(400).json({ error: 'Nothing to update' });
     
-    params.push(ids);
+    params.push(idArray);
     
-    // ✅ THE FIX: Added ::text[] to tell PostgreSQL exactly what type of array this is
-    await query(`UPDATE users SET ${updates.join(', ')}, updated_at=NOW() WHERE id = ANY($${pi}::uuid[])`, params);
+    // 2. THE ACTUAL FIX: Changed ::uuid[] to ::text[] to prevent database type mismatch panics
+    await query(`UPDATE users SET ${updates.join(', ')}, updated_at=NOW() WHERE id = ANY($${pi}::text[])`, params);
     
-    res.json({ success: true, updated: ids.length });
+    res.json({ success: true, updated: idArray.length });
+    
   } catch (e) { 
-    // ✅ PRO-TIP: Print the actual error to your Render logs so it's easier to fix next time!
-    console.error("Bulk update error:", e); 
-    res.status(500).json({ error: 'Bulk update failed' }); 
+    console.error("❌ Bulk update error:", e); 
+    // Send back the specific error message to help with future debugging
+    res.status(500).json({ error: 'Bulk update failed', details: e.message }); 
   }
 });
 
