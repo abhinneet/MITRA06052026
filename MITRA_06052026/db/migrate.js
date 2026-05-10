@@ -22,6 +22,27 @@ async function runAllMigrations() {
             CREATE TABLE IF NOT EXISTS compliance_settings (key VARCHAR(100) PRIMARY KEY, value TEXT, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
             CREATE TABLE IF NOT EXISTS app_configs (key VARCHAR(255) PRIMARY KEY, value TEXT, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
             CREATE TABLE IF NOT EXISTS audit_logs (id SERIAL PRIMARY KEY, user_id TEXT, action VARCHAR(255), details JSONB, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
+            
+            -- ⚡ THE FIX: Missing Deep Analytics & Tenant Files tables
+            CREATE TABLE IF NOT EXISTS quiz_attempt_answers (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                attempt_id UUID,
+                question_id UUID,
+                selected_option TEXT,
+                is_correct BOOLEAN
+            );
+            
+            CREATE TABLE IF NOT EXISTS tenant_app_files (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                tenant_id UUID,
+                file_name TEXT,
+                file_url TEXT,
+                created_at TIMESTAMP DEFAULT NOW()
+            );
+            
+            -- Ensure users and notifications exist before we try to alter them below
+            CREATE TABLE IF NOT EXISTS users (id UUID PRIMARY KEY DEFAULT gen_random_uuid());
+            CREATE TABLE IF NOT EXISTS notifications (id UUID PRIMARY KEY DEFAULT gen_random_uuid());
         `);
 
         // ---------------------------------------------------------
@@ -44,6 +65,14 @@ async function runAllMigrations() {
         await pool.query(`ALTER TABLE consent_logs ADD COLUMN IF NOT EXISTS consent_type VARCHAR(50);`);
         await pool.query(`ALTER TABLE consent_logs ADD COLUMN IF NOT EXISTS consent_given BOOLEAN;`);
         await pool.query(`ALTER TABLE consent_logs ALTER COLUMN user_id TYPE VARCHAR(255);`);
+        
+        // ⚡ THE FIX: Missing Notifications & Users columns
+        await pool.query(`ALTER TABLE notifications ADD COLUMN IF NOT EXISTS subject TEXT;`);
+        await pool.query(`ALTER TABLE notifications ADD COLUMN IF NOT EXISTS class_name VARCHAR(100);`);
+        await pool.query(`ALTER TABLE notifications ADD COLUMN IF NOT EXISTS topic VARCHAR(100);`);
+        await pool.query(`ALTER TABLE notifications ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT NOW();`);
+        
+        await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS mfa_enforced BOOLEAN DEFAULT false;`);
 
 
         // ---------------------------------------------------------
