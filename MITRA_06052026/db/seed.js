@@ -11,17 +11,21 @@ async function seed() {
   console.log('🌱 Seeding database...\n');
 
   // ── Master Admin ────────────────────────────────────────────────────────────
-  const adminPwd = await bcrypt.hash('Mitra@Admin2026!', 12);
+  const adminPwd = await bcrypt.hash('admin123', 12); // The password we set up
   await query(`
-    INSERT INTO users (id, full_name, email, password_hash, role,
-      perm_publish_apps, perm_upload_unity, perm_manage_geo, perm_view_analytics,
-      perm_create_users, perm_edit_curriculum, perm_approve_content,
-      perm_export_data, perm_manage_ads, perm_replay_analytics)
-    VALUES ($1,'Rajeev Sharma','admin@mitra.gov.in',$2,'master_admin',
-      true,true,true,true,true,true,true,true,true,true)
-    ON CONFLICT (email) DO NOTHING
+    INSERT INTO users (
+      id, full_name, email, password_hash, role, is_active, 
+      perm_view_dashboard, perm_view_controls, perm_view_curriculum, 
+      perm_view_ar_assets, perm_view_notif, perm_view_users, 
+      perm_view_legal, perm_view_settings, perm_view_app_builder, perm_manage_compliance
+    ) VALUES (
+      $1, 'Dr. Navneet Chauhan', 'admin@mitra.com', $2, 'master_admin', true, 
+      true, true, true, 
+      true, true, true, 
+      true, true, true, true
+    ) ON CONFLICT (email) DO NOTHING;
   `, [uuidv4(), adminPwd]);
-  console.log('✅ Master admin created: admin@mitra.gov.in / Mitra@Admin2026!');
+  console.log('✅ Master admin created: admin@mitra.com / admin123');
 
   // ── Sample District Officer ──────────────────────────────────────────────────
   const doPwd = await bcrypt.hash('District@2026!', 12);
