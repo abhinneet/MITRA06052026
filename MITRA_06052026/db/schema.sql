@@ -160,3 +160,46 @@ CREATE TABLE IF NOT EXISTS india_states (
     geojson JSONB,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+-- ==========================================
+-- V4.1 ANALYTICS & TELEMETRY TABLES
+-- ==========================================
+CREATE TABLE IF NOT EXISTS ad_impressions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  campaign_id UUID NOT NULL,
+  device_id TEXT NOT NULL,
+  student_id TEXT,
+  state TEXT,
+  district TEXT,
+  class_grade TEXT,
+  age_group TEXT,
+  subject_context TEXT,
+  app_language TEXT,
+  media_type TEXT,
+  view_seconds NUMERIC(8,2) DEFAULT 0,
+  completed BOOLEAN DEFAULT FALSE,
+  clicked BOOLEAN DEFAULT FALSE,
+  skipped BOOLEAN DEFAULT FALSE,
+  is_repeat BOOLEAN DEFAULT FALSE,
+  repeat_count INT DEFAULT 0,
+  timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS telemetry_sessions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  device_id TEXT NOT NULL,
+  student_id TEXT,
+  state TEXT,
+  district TEXT,
+  class_grade TEXT,
+  subject TEXT,
+  topic_id UUID,
+  session_minutes NUMERIC(8,2) DEFAULT 0,
+  replay_count INT DEFAULT 0,
+  completed BOOLEAN DEFAULT FALSE,
+  offline_session BOOLEAN DEFAULT FALSE,
+  app_language TEXT,
+  device_tier TEXT,
+  timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
