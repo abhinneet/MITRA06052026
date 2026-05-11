@@ -152,14 +152,19 @@ ALTER TABLE quizzes
 ADD COLUMN IF NOT EXISTS class_name VARCHAR(100),
 ADD COLUMN IF NOT EXISTS subject VARCHAR(100);
 
--- ─── ADD MISSING GEO-FENCING TABLE ─────────────────────────────────────────
+-- ─── ADD MISSING GEO-FENCING TABLE (BULLETPROOFED) ─────────────────────────
 CREATE TABLE IF NOT EXISTS india_states (
     id SERIAL PRIMARY KEY,
-    state_code VARCHAR(10) UNIQUE NOT NULL,
-    state_name VARCHAR(100),
-    geojson JSONB,
+    state_code VARCHAR(10),       -- Relaxed constraint for legacy code
+    state_name VARCHAR(255),      -- Relaxed constraint for legacy code
+    code VARCHAR(10) UNIQUE,      -- New column for seed script
+    name VARCHAR(255) UNIQUE,     -- New column for seed script
+    region VARCHAR(100),          -- Added for seed script
+    capital VARCHAR(255),         -- Added for seed script
+    geojson JSONB,                -- Preserved for map boundaries
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
 -- ==========================================
 -- V4.1 ANALYTICS & TELEMETRY TABLES
 -- ==========================================
