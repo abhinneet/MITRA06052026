@@ -193,36 +193,4 @@ boot().catch(err => {
   process.exit(1);
 });
 
-const cron = require('node-cron');
-
-// 1. Dispatch scheduled notifications every minute
-cron.schedule('* * * * *', async () => {
-  try {
-    const response = await fetch(`http://localhost:${process.env.PORT || 3000}/api/notifications/dispatch-scheduled`, {
-      method: 'POST',
-      headers: {
-        'x-server-key': process.env.INTERNAL_SERVER_KEY
-      }
-    });
-    if (!response.ok) {
-      console.error('Failed to dispatch scheduled notifications');
-    }
-  } catch (err) {
-    console.error('Notification dispatch cron error:', err);
-  }
-});
-
-// 2. Clean up old audit logs (CERT-In 180-day compliance) daily at 2 AM
-cron.schedule('0 2 * * *', async () => {
-  try {
-    const { pool } = require('./db'); // Assuming your db/index.js exports pool
-    const result = await pool.query(
-      "DELETE FROM audit_logs WHERE created_at < NOW() - INTERVAL '180 days'"
-    );
-    console.log(`🗑️ Cleaned ${result.rowCount} old audit logs (>180 days)`);
-  } catch (err) {
-    console.error('Audit log cleanup error:', err);
-  }
-});
-
 module.exports = app;
